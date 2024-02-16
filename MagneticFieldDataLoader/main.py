@@ -37,6 +37,11 @@ STATIONS = {'NRD', 'NAL', 'LYR', 'HOR', 'HOP', 'BJN', 'NOR', 'JAN', 'SOR', 'SCO'
 conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 
+# cur.execute(f"DELETE FROM {TABLE_NAME};")
+# conn.commit()
+# cur.execute("vacuum;")
+# conn.commit()
+
 last_date_in_table = cur.execute(f"SELECT date "
                                  f"FROM {TABLE_NAME} "
                                  f"ORDER BY date DESC "
@@ -54,7 +59,8 @@ else:
     # to start downloading the next batch starting from the next hour.
     last_date_in_table = datetime.strftime(last_date_in_table + relativedelta(hours=1), "%Y%m%d%H")
 
-while True:
+# while True: TODO: use this while loop instead of current.
+while datetime.strptime(last_date_in_table, "%Y%m%d%H") < datetime.strptime("1985010100", "%Y%m%d%H"):
     # Date until which data is downloaded to the database.
     # 30 days are subtracted due to the fact that data for the last 30 days is not available.
     end_date = datetime.today() - relativedelta(days=30)
@@ -99,7 +105,7 @@ while True:
             fout.close()
 
             # Data in this is df is stored in this format: date | STATION_X | STATION_Y | STATION_Z | ...
-            df_stage1 = pd.read_csv(FILE_TO_STORE_TEMPORAL_DATA, sep='\s+')
+            df_stage1 = pd.read_csv(FILE_TO_STORE_TEMPORAL_DATA, sep='\s+', na_values=99999.9)
             # Marge columns YYYY, MM, DD... to one date column.
             df_stage1 = df_stage1.assign(YYYY=df_stage1.YYYY.astype(str) + '-' + df_stage1.MM.astype(str) + '-' +
                                               df_stage1.DD.astype(str) + ' ' + df_stage1.hh.astype(str) +
@@ -121,6 +127,8 @@ while True:
                 df_stage1[current_stations_complement[i + 1]] = None
                 current_stations_complement[i + 2] += f"_Z"
                 df_stage1[current_stations_complement[i + 2]] = None
+
+            df_stage1 = df_stage1.replace({np.nan: None})
 
             for row in range(df_stage1.shape[0]):
                 curr_date = df_stage1.date[row]
