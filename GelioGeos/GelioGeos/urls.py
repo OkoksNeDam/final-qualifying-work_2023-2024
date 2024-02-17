@@ -16,7 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from main_page import views as views_main
+from ts_visualizer import views as ts_visualizer_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", views_main.main_view),
+    path("ts_visualizer", ts_visualizer_views.main_view)
 ]

@@ -37,11 +37,6 @@ STATIONS = {'NRD', 'NAL', 'LYR', 'HOR', 'HOP', 'BJN', 'NOR', 'JAN', 'SOR', 'SCO'
 conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
 
-# cur.execute(f"DELETE FROM {TABLE_NAME};")
-# conn.commit()
-# cur.execute("vacuum;")
-# conn.commit()
-
 last_date_in_table = cur.execute(f"SELECT date "
                                  f"FROM {TABLE_NAME} "
                                  f"ORDER BY date DESC "
@@ -60,7 +55,7 @@ else:
     last_date_in_table = datetime.strftime(last_date_in_table + relativedelta(hours=1), "%Y%m%d%H")
 
 # while True: TODO: use this while loop instead of current.
-while datetime.strptime(last_date_in_table, "%Y%m%d%H") < datetime.strptime("1985010100", "%Y%m%d%H"):
+while datetime.strptime(last_date_in_table, "%Y%m%d%H") < datetime.strptime("2000010100", "%Y%m%d%H"):
     # Date until which data is downloaded to the database.
     # 30 days are subtracted due to the fact that data for the last 30 days is not available.
     end_date = datetime.today() - relativedelta(days=30)

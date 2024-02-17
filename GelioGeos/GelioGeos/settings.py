@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "ts_visualizer"
+    "main_page",
+    "ts_visualizer",
 ]
 
 MIDDLEWARE = [
