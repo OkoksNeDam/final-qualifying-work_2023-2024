@@ -54,8 +54,7 @@ else:
     # to start downloading the next batch starting from the next hour.
     last_date_in_table = datetime.strftime(last_date_in_table + relativedelta(hours=1), "%Y%m%d%H")
 
-# while True: TODO: use this while loop instead of current.
-while datetime.strptime(last_date_in_table, "%Y%m%d%H") < datetime.strptime("2000010100", "%Y%m%d%H"):
+while True:
     # Date until which data is downloaded to the database.
     # 30 days are subtracted due to the fact that data for the last 30 days is not available.
     end_date = datetime.today() - relativedelta(days=30)
@@ -139,6 +138,3 @@ while datetime.strptime(last_date_in_table, "%Y%m%d%H") < datetime.strptime("200
         last_date_in_table = datetime.strptime(last_date_in_table, '%Y%m%d%H')
         last_date_in_table = datetime.strftime(last_date_in_table + relativedelta(days=1), "%Y%m%d%H")
         os.remove(FILE_TO_STORE_TEMPORAL_DATA)
-    else:
-        # TODO: Delete else statement, so that the data is loaded every day.
-        break
