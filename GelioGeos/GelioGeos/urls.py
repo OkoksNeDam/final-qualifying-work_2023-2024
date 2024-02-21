@@ -22,5 +22,6 @@ from ts_visualizer import views as ts_visualizer_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views_main.main_view),
-    path("ts_visualizer", ts_visualizer_views.main_view)
+    path("ts_visualizer", ts_visualizer_views.main_view),
+    path("test", ts_visualizer_views.TSView.as_view())
 ]

@@ -138,3 +138,5 @@ while True:
         last_date_in_table = datetime.strptime(last_date_in_table, '%Y%m%d%H')
         last_date_in_table = datetime.strftime(last_date_in_table + relativedelta(days=1), "%Y%m%d%H")
         os.remove(FILE_TO_STORE_TEMPORAL_DATA)
+    else:
+        print("NO DATA")

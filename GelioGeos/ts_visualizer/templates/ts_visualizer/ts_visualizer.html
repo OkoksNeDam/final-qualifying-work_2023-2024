@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
@@ -8,5 +9,17 @@
     <h1>
         Time series visualizer
     </h1>
+    <label>Start date</label>
+    <input type="text" id="dataStartDateInput"/><br>
+    <label>End date</label>
+    <input type="text" id="dataEndDateInput"/><br>
+    <label>Station</label>
+    <input type="text" id="stationInput"/><br>
+    <button id="submitButton">Submit</button>
+    <div id="tsGraph"></div>
+
+    <script src="{% static 'ts_visualizer/js/plotly-2.29.1.min.js' charset='utf-8' %}"></script>
+    <script src="{% static 'ts_visualizer/js/jquery-3.7.0.min.js' %}"></script>
+    <script src="{% static 'ts_visualizer/js/index.js' %}"></script>
 </body>
 </html>
