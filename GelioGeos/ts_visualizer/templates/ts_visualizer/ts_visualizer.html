@@ -7,17 +7,96 @@
 </head>
 <body>
     <h1>
-        Time series visualizer
+        Magnetic field data visualizer
     </h1>
-    <label>Start date</label>
-    <input type="text" id="dataStartDateInput"/><br>
-    <label>End date</label>
-    <input type="text" id="dataEndDateInput"/><br>
-    <label>Station</label>
-    <input type="text" id="stationInput"/><br>
-    <button id="submitButton">Submit</button>
-    <div id="tsGraph"></div>
+    <fieldset style="float: left;">
+        <legend>Parameters of visualization:</legend>
 
+        <fieldset style="display: inline-block">
+            <legend>Select type of visualization:</legend>
+    
+            <div>
+              <input type="radio" id="input-radio-2d" name="visualization-type" value="2d" checked />
+              <label for="input-radio-2d">2d</label>
+            </div>
+          
+            <div>
+              <input type="radio" id="input-radio-3d" name="visualization-type" value="3d" />
+              <label for="input-radio-3d">3d</label>
+            </div>
+
+        </fieldset>
+        <br>
+        <fieldset>
+            <legend>Enter dates interval:</legend>
+
+            <div>
+                <label for="start-date-input">Start date</label>
+                <input type="datetime-local" id="start-date-input" value="1983-01-01T00:00">
+            </div>
+
+            <div>
+                <label for="final-date-input">Final date</label>
+                <input type="datetime-local" id="final-date-input" value="2024-01-01T00:00">
+            </div>
+        </fieldset>
+        <br>
+        <fieldset>
+            <legend>Time averaging value:</legend>
+
+            <div>
+                <input type="radio" id="input-radio-hour" name="time-averaging-value" value="hour" checked />
+                <label for="input-radio-hour">hour</label>
+              </div>
+            
+            <div>
+                <input type="radio" id="input-radio-day" name="time-averaging-value" value="day" />
+                <label for="input-radio-day">day</label>
+            </div>
+
+            <div>
+                <input type="radio" id="input-radio-month" name="time-averaging-value" value="month" />
+                <label for="input-radio-month">month</label>
+            </div>
+            
+            <div>
+                <input type="radio" id="input-radio-year" name="time-averaging-value" value="year" />
+                <label for="input-radio-year">year</label>
+            </div>
+        </fieldset>
+        <br>
+        <fieldset>
+            <legend>Select components:</legend>
+
+            <div>
+                <input type="checkbox" id="checkbox-X-component" name="checkbox-X-component" checked />
+                <label for="checkbox-X-component">X</label>
+            </div>
+            
+            <div>
+                <input type="checkbox" id="checkbox-Y-component" name="checkbox-Y-component" />
+                <label for="checkbox-Y-component">Y</label>
+            </div>
+
+            <div>
+                <input type="checkbox" id="checkbox-Z-component" name="checkbox-Z-component" />
+                <label for="checkbox-Z-component">Z</label>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Select stations:</legend>
+
+            <select multiple size="7">
+                {% for station in stations %}
+                    <option value={{station}}>{{ station }}</option>
+                {% endfor %}
+            </select>
+
+        </fieldset>
+    </fieldset>
+    <div style="float: right; height: 200px;
+    width: 50%;
+    background-color: powderblue;"></div>
     <script src="{% static 'ts_visualizer/js/plotly-2.29.1.min.js' charset='utf-8' %}"></script>
     <script src="{% static 'ts_visualizer/js/jquery-3.7.0.min.js' %}"></script>
     <script src="{% static 'ts_visualizer/js/index.js' %}"></script>

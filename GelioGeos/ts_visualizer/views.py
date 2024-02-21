@@ -3,12 +3,21 @@ from django.views import View
 from django.http import JsonResponse
 import sqlite3
 
+# TODO: create constats.py for this array.
+STATIONS = ['NRD', 'NAL', 'LYR', 'HOR', 'HOP', 'BJN', 'NOR', 'JAN', 'SOR', 'SCO', 'ALT', 'KEV', 'TRO', 'MAS', 'AND',
+            'KIL', 'KAU', 'IVA', 'ABK', 'LEK', 'MUO', 'LOZ', 'KIR', 'RST', 'SOD', 'PEL', 'JCK', 'DON', 'RAN', 'KUL',
+            'RVK', 'LYC', 'OUJ', 'LRV', 'MEK', 'HAN', 'HAS', 'DOB', 'HOV', 'NAQ', 'SOL', 'NUR', 'HAR', 'AAL', 'UPS',
+            'NRA', 'KAR', 'TAR', 'FKP', 'GOT', 'SIN', 'VXJ', 'BRZ', 'BFE', 'BOR', 'ROE', 'HLP', 'SUW', 'WNG', 'NGK',
+            'PPN']
+
 
 def main_view(request):
-    return render(request, "ts_visualizer/ts_visualizer.html")
+    context = {
+        'stations': STATIONS
+    }
+    return render(request, "ts_visualizer/ts_visualizer.html", context=context)
 
 
-# TSView
 class TSView(View):
     def get(self, request):
         start_date = request.GET['startDate']
