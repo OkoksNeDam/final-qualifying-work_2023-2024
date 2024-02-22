@@ -1,0 +1,8 @@
+#cesiumContainer {
+    width: 340px;
+    height: 340px;
+}
+
+.cesium-widget-credits{
+    display:none !important;
+}

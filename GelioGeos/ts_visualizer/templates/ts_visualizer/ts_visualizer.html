@@ -2,17 +2,20 @@
 <html lang="en">
 <head>
     {% load static %}
+    <link rel='stylesheet' href="{% static 'ts_visualizer/css/index.css' %}">
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.82/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.82/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
     <h1>
-        Magnetic field data visualizer
+        Earth magnetic field data visualizer
     </h1>
     <fieldset style="float: left;">
         <legend>Parameters of visualization:</legend>
 
-        <fieldset style="display: inline-block">
+        <fieldset>
             <legend>Select type of visualization:</legend>
     
             <div>
@@ -83,20 +86,25 @@
                 <label for="checkbox-Z-component">Z</label>
             </div>
         </fieldset>
+        <br>
         <fieldset>
             <legend>Select stations:</legend>
 
-            <select multiple size="7">
-                {% for station in stations %}
-                    <option value={{station}}>{{ station }}</option>
-                {% endfor %}
-            </select>
-
+            <div id="cesiumContainer"></div>
+            <script>
+                Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4ZTkzNzcxNS0zNTc0LTRhMDEtYmQzMS1lODU0MzBkN2U3YTkiLCJpZCI6MTk3MTE3LCJpYXQiOjE3MDg1ODIzNjh9.BRGRtS-uASDohy08W2MCsEV0Zd5wjQJmhfLSq54Ylpk';
+                const viewer = new Cesium.Viewer("cesiumContainer", { animation: false, 
+                                                                      timeline: false, 
+                                                                      fullscreenButton: false,
+                                                                      navigationHelpButton: false,
+                                                                      scene3DOnly: true,
+                                                                      baseLayerPicker: false,
+                                                                      geocoder: false});
+            </script>
         </fieldset>
+        <br>
+        <button id="submit-form-button" style="height: 100%; width: 100%; background-color: darkgray;">Submit</button>
     </fieldset>
-    <div style="float: right; height: 200px;
-    width: 50%;
-    background-color: powderblue;"></div>
     <script src="{% static 'ts_visualizer/js/plotly-2.29.1.min.js' charset='utf-8' %}"></script>
     <script src="{% static 'ts_visualizer/js/jquery-3.7.0.min.js' %}"></script>
     <script src="{% static 'ts_visualizer/js/index.js' %}"></script>
