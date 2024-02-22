@@ -3,8 +3,6 @@
 <head>
     {% load static %}
     <link rel='stylesheet' href="{% static 'ts_visualizer/css/index.css' %}">
-    <script src="https://cesium.com/downloads/cesiumjs/releases/1.82/Build/Cesium/Cesium.js"></script>
-    <link href="https://cesium.com/downloads/cesiumjs/releases/1.82/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
@@ -85,22 +83,6 @@
                 <input type="checkbox" id="checkbox-Z-component" name="checkbox-Z-component" />
                 <label for="checkbox-Z-component">Z</label>
             </div>
-        </fieldset>
-        <br>
-        <fieldset>
-            <legend>Select stations:</legend>
-
-            <div id="cesiumContainer"></div>
-            <script>
-                Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4ZTkzNzcxNS0zNTc0LTRhMDEtYmQzMS1lODU0MzBkN2U3YTkiLCJpZCI6MTk3MTE3LCJpYXQiOjE3MDg1ODIzNjh9.BRGRtS-uASDohy08W2MCsEV0Zd5wjQJmhfLSq54Ylpk';
-                const viewer = new Cesium.Viewer("cesiumContainer", { animation: false, 
-                                                                      timeline: false, 
-                                                                      fullscreenButton: false,
-                                                                      navigationHelpButton: false,
-                                                                      scene3DOnly: true,
-                                                                      baseLayerPicker: false,
-                                                                      geocoder: false});
-            </script>
         </fieldset>
         <br>
         <button id="submit-form-button" style="height: 100%; width: 100%; background-color: darkgray;">Submit</button>
