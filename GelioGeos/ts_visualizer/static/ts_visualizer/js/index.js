@@ -54,17 +54,22 @@ submitFormButton.addEventListener('click', e => {
         }
     }
     let date, x;
+    // TODO: добавить проверку для введенных данных.
     $.ajax({
         url: 'earth_magnetic_field/ts_data',
         method: 'get',
         dataType: 'json',
         async: false,
         data: { 
-            
+            "selectedStations": selectedStations.join(' '),
+            "startDate": startDateInput.value,
+            "finalDate": finalDateInput.value,
+            "XComponent": XComponentCheckbox.checked,
+            "YComponent": YComponentCheckbox.checked,
+            "ZComponent": ZComponentCheckbox.checked,
         },
         success: function (response) {
-            date = response.date;
-            x = response.x;
+
         },
         error: function (response) {
             alert("ERROR")
