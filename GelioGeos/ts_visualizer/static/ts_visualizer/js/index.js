@@ -21,6 +21,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 circlesObjects = [];
 
 // Create circles and add them to map.
+// TODO: настроить размер кругов, так как они отображаются по-разному.
 for (const key of Object.keys(stationAndCoordinatesDict)) { 
     let circle = L.circle(stationAndCoordinatesDict[key], {
         color: 'grey',
@@ -37,31 +38,38 @@ for (const key of Object.keys(stationAndCoordinatesDict)) {
  };
 
 submitFormButton.addEventListener('click', e => {
+    const typeOfVizInput = document.querySelector('input[name="visualization-type"]:checked');
+    const startDateInput = document.getElementById('start-date-input');
+    const finalDateInput = document.getElementById('final-date-input');
+    const timeAveragingValueInput = document.querySelector('input[name="time-averaging-value"]:checked');
+    const XComponentCheckbox = document.getElementById('checkbox-X-component');
+    const YComponentCheckbox = document.getElementById('checkbox-Y-component');
+    const ZComponentCheckbox = document.getElementById('checkbox-Z-component');
+
+    let selectedStations = []
+    // Select stations which are marked in green color.
     for (const circle of circlesObjects) {
         if (circle.options.color == 'green') {
-            console.log(circle.options.name)
+            selectedStations.push(circle.options.name)
         }
     }
-    // const selectedVisualizationTypeInput = document.querySelector('input[name="visualization-type"]:checked');
-    // let date, x;
-    // $.ajax({
-    //     url: 'test',
-    //     method: 'get',
-    //     dataType: 'json',
-    //     async: false,
-    //     data: { 
-    //         startDate: dataStartDateInput.value,
-    //         endDate: dataEndDateInput.value,
-    //         station: stationInput.value
-    //     },
-    //     success: function (response) {
-    //         date = response.date;
-    //         x = response.x;
-    //     },
-    //     error: function (response) {
-    //         alert("ERROR")
-    //     },
-    // });
+    let date, x;
+    $.ajax({
+        url: 'earth_magnetic_field/ts_data',
+        method: 'get',
+        dataType: 'json',
+        async: false,
+        data: { 
+            
+        },
+        success: function (response) {
+            date = response.date;
+            x = response.x;
+        },
+        error: function (response) {
+            alert("ERROR")
+        },
+    });
     // let trace1 = {
     //     type: "scatter",
     //     mode: "lines",

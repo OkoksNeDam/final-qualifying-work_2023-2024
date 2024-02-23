@@ -2,3 +2,21 @@
     height: 340px; 
     width: 340px;
 }
+
+.list-of-ts-blocks-div {
+    overflow-y: scroll; 
+    float: right; 
+    border: 1px solid rgb(109, 109, 109); 
+    width: 1240px; 
+    height: 880px; 
+    background-color: lightgray;
+}
+
+.ts-block-div {
+    height: 170px; 
+    border: 1px solid rgb(109, 109, 109); 
+    margin-left: 1em; 
+    margin-top: 1em;
+    margin-right: 1em;
+    margin-bottom: 1em;
+}

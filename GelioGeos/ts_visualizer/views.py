@@ -8,7 +8,7 @@ def main_view(request):
     return render(request, "ts_visualizer/ts_visualizer.html")
 
 
-class TSView(View):
+class TSDataView(View):
     def get(self, request):
         start_date = request.GET['startDate']
         end_date = request.GET['endDate']
