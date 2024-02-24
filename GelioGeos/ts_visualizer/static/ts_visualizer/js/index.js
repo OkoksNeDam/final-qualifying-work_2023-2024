@@ -53,7 +53,7 @@ submitFormButton.addEventListener('click', e => {
             selectedStations.push(circle.options.name)
         }
     }
-    let data;
+    let data, dates;
     // TODO: добавить проверку для введенных данных.
     $.ajax({
         url: 'earth_magnetic_field/ts_data',
@@ -69,27 +69,27 @@ submitFormButton.addEventListener('click', e => {
             "ZComponent": ZComponentCheckbox.checked,
         },
         success: function (response) {
-            data = response.data
+            data = JSON.parse(response.data);
+            dates = response.dates
         },
         error: function (response) {
-            alert("ERROR")
+            alert("Can't get data from server.")
         },
     });
-    data = JSON.parse(data);
-    // let trace1 = {
-    //     type: "scatter",
-    //     mode: "lines",
-    //     name: 'AAPL High',
-    //     x: date,
-    //     y: x,
-    //     line: {color: '#17BECF'}
-    //   }
+    let trace1 = {
+        type: "scatter",
+        mode: "lines",
+        name: 'AAPL High',
+        x: dates,
+        y: data['MEK'][0],
+        line: {color: '#17BECF'}
+      }
 
     // var data = [trace1];
 
-    // var layout = {
-    //     title: 'Basic Time Series',
-    // };
+    var layout = {
+        title: 'Basic Time Series'
+    };
     
-    // Plotly.newPlot('tsGraph', data, layout, {displaylogo: false});
+    Plotly.newPlot('first-ts-block', [trace1], layout, {displaylogo: false});
 })

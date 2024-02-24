@@ -30,9 +30,9 @@ class TSDataView(View):
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
 
-        # TODO: убрать и добавить выборку из дат из таблицы.
-        startDate = "2024-01-01 00:00:00"
-        finalDate = "2024-01-01 05:00:00"
+        # TODO: спарсить данные с клиента.
+        startDate = "2020-01-01 00:00:00"
+        finalDate = "2024-01-01 00:00:00"
 
         loadedData = cur.execute(f"SELECT date, station{','.join(['', *componentsList])} "                       
                                  f"FROM {TABLE_NAME} "
@@ -42,9 +42,8 @@ class TSDataView(View):
 
         loadedData = loadedData.fetchall()
         datesToReturn = []
-        for i in range(0, len(loadedData), 2):
+        for i in range(0, len(loadedData), len(selectedStations)):
             datesToReturn += [loadedData[i][0]]
-        print(datesToReturn)
         dataToReturn = {}
         for station in selectedStations:
             dataToReturn[station] = [[] for _ in range(len(componentsList))]
@@ -53,9 +52,7 @@ class TSDataView(View):
             for i in range(len(loadedData[idx]) - 2):
                 dataForCurrentStation[i] += [loadedData[idx][i + 2]]
             dataToReturn[loadedData[idx][1]] = dataForCurrentStation
-            print(loadedData[idx])
-        print(dataToReturn)
         return JsonResponse({
             "dates": datesToReturn,
-            "data": json.dumps({'hello': 11, 'world': 22})
+            "data": json.dumps(dataToReturn)
         })
