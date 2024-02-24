@@ -1,4 +1,5 @@
 const submitFormButton = document.getElementById('submit-form-button');
+let listOfTsBlocks = []
 
 const stationAndCoordinatesDict = {
     'NRD': [81.60, -16.67], 'NAL': [78.92, 11.95], 'LYR': [78.20, 15.82], 'HOR': [77.00, 15.60], 'HOP': [76.51, 25.01], 'BJN': [74.50, 19.20], 'NOR': [71.09, 25.79], 'JAN': [70.90, -8.7], 'SOR': [70.54, 22.22], 'SCO': [70.48, -21,97], 'ALT': [69.86, 22.96], 'KEV': [69.76, 27.01], 'TRO': [69.66, 18.94], 'MAS': [69.46, 23.70], 'AND': [69.30, 16.03],
@@ -76,20 +77,40 @@ submitFormButton.addEventListener('click', e => {
             alert("Can't get data from server.")
         },
     });
-    let trace1 = {
-        type: "scatter",
-        mode: "lines",
-        name: 'AAPL High',
-        x: dates,
-        y: data['MEK'][0],
-        line: {color: '#17BECF'}
-      }
+
+    for (const station of selectedStations) {
+        let iDiv = document.createElement('div');
+        iDiv.id = station + '-ts-block';
+        iDiv.class = 'ts-block-div';
+        listOfTsBlocks.push(iDiv);
+        document.getElementById('list-of-ts-blocks-div').appendChild(iDiv);
+        // Array of objects, each object represents x, y and z components of one station.
+        let tsLinesInfo = []
+        for (let i = 0; i < XComponentCheckbox.checked + YComponentCheckbox.checked + ZComponentCheckbox.checked; i++) {
+            tsLinesInfo.push({
+                type: "scatter",
+                mode: "lines",
+                x: dates,
+                y: data[station][i],
+                line: {color: '#17BECF'}})
+        }
+        let layout = {};
+        Plotly.newPlot(iDiv.id, tsLinesInfo, layout, {displaylogo: false});
+    }
+
+    // let trace1 = {
+    //     type: "scatter",
+    //     mode: "lines",
+    //     x: dates,
+    //     y: data['MEK'][0],
+    //     line: {color: '#17BECF'}
+    //   }
 
     // var data = [trace1];
 
-    var layout = {
-        title: 'Basic Time Series'
-    };
+    // var layout = {
+    //     title: 'Basic Time Series'
+    // };
     
-    Plotly.newPlot('first-ts-block', [trace1], layout, {displaylogo: false});
+    // Plotly.newPlot('first-ts-block', [trace1], layout, {displaylogo: false});
 })
