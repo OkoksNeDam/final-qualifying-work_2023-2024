@@ -31,7 +31,7 @@ class TSDataView(View):
         cur = conn.cursor()
 
         # TODO: спарсить данные с клиента.
-        startDate = "2020-01-01 00:00:00"
+        startDate = "1983-01-01 00:00:00"
         finalDate = "2024-01-01 00:00:00"
 
         loadedData = cur.execute(f"SELECT date, station{','.join(['', *componentsList])} "                       
@@ -52,6 +52,8 @@ class TSDataView(View):
             for i in range(len(loadedData[idx]) - 2):
                 dataForCurrentStation[i] += [loadedData[idx][i + 2]]
             dataToReturn[loadedData[idx][1]] = dataForCurrentStation
+        
+        # TODO: Похоже, что при пустых данных появляется ошибка (error для некоторых станций), надо проверить.
         return JsonResponse({
             "dates": datesToReturn,
             "data": json.dumps(dataToReturn)

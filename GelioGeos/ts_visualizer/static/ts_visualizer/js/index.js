@@ -39,6 +39,8 @@ for (const key of Object.keys(stationAndCoordinatesDict)) {
  };
 
 submitFormButton.addEventListener('click', e => {
+    document.getElementById("list-of-ts-blocks-div").innerHTML = ''
+
     const typeOfVizInput = document.querySelector('input[name="visualization-type"]:checked');
     const startDateInput = document.getElementById('start-date-input');
     const finalDateInput = document.getElementById('final-date-input');
@@ -78,10 +80,26 @@ submitFormButton.addEventListener('click', e => {
         },
     });
 
+    let listOfComponents = []
+
+    if (XComponentCheckbox.checked) {
+        listOfComponents.push('x')
+    }
+
+    if (YComponentCheckbox.checked) {
+        listOfComponents.push('y')
+    }
+
+    if (ZComponentCheckbox.checked) {
+        listOfComponents.push('z')
+    }
+
+    let colorsForEachComponent = ['red', 'blue', 'green']
+
     for (const station of selectedStations) {
         let iDiv = document.createElement('div');
         iDiv.id = station + '-ts-block';
-        iDiv.class = 'ts-block-div';
+        iDiv.classList.add('ts-block-div');
         listOfTsBlocks.push(iDiv);
         document.getElementById('list-of-ts-blocks-div').appendChild(iDiv);
         // Array of objects, each object represents x, y and z components of one station.
@@ -92,25 +110,14 @@ submitFormButton.addEventListener('click', e => {
                 mode: "lines",
                 x: dates,
                 y: data[station][i],
-                line: {color: '#17BECF'}})
+                line: {color: colorsForEachComponent[i]},
+                name: listOfComponents[i] + " component"})
         }
-        let layout = {};
+        let layout = {
+            title: station + " station",
+            paper_bgcolor: "rgb(237, 237, 237)",
+            plot_bgcolor: "rgb(237, 237, 237)"
+        };
         Plotly.newPlot(iDiv.id, tsLinesInfo, layout, {displaylogo: false});
     }
-
-    // let trace1 = {
-    //     type: "scatter",
-    //     mode: "lines",
-    //     x: dates,
-    //     y: data['MEK'][0],
-    //     line: {color: '#17BECF'}
-    //   }
-
-    // var data = [trace1];
-
-    // var layout = {
-    //     title: 'Basic Time Series'
-    // };
-    
-    // Plotly.newPlot('first-ts-block', [trace1], layout, {displaylogo: false});
 })
