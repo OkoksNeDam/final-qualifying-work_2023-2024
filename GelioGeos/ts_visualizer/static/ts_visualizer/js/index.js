@@ -53,7 +53,7 @@ submitFormButton.addEventListener('click', e => {
             selectedStations.push(circle.options.name)
         }
     }
-    let date, x;
+    let data;
     // TODO: добавить проверку для введенных данных.
     $.ajax({
         url: 'earth_magnetic_field/ts_data',
@@ -69,12 +69,13 @@ submitFormButton.addEventListener('click', e => {
             "ZComponent": ZComponentCheckbox.checked,
         },
         success: function (response) {
-
+            data = response.data
         },
         error: function (response) {
             alert("ERROR")
         },
     });
+    data = JSON.parse(data);
     // let trace1 = {
     //     type: "scatter",
     //     mode: "lines",
