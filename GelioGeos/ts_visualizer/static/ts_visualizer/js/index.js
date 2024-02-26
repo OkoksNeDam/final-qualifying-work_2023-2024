@@ -43,7 +43,9 @@ submitFormButton.addEventListener('click', e => {
 
     const typeOfVizInput = document.querySelector('input[name="visualization-type"]:checked');
     const startDateInput = document.getElementById('start-date-input');
+    const startHourSelect = document.getElementById('start-hour-select');
     const finalDateInput = document.getElementById('final-date-input');
+    const finalHourSelect = document.getElementById('final-hour-select');
     const timeAveragingValueInput = document.querySelector('input[name="time-averaging-value"]:checked');
     const XComponentCheckbox = document.getElementById('checkbox-X-component');
     const YComponentCheckbox = document.getElementById('checkbox-Y-component');
@@ -65,8 +67,8 @@ submitFormButton.addEventListener('click', e => {
         async: false,
         data: { 
             "selectedStations": selectedStations.join(' '),
-            "startDate": startDateInput.value,
-            "finalDate": finalDateInput.value,
+            "startDate": startDateInput.value + " " + startHourSelect.value + ":00:00",
+            "finalDate": finalDateInput.value + " " + finalHourSelect.value + ":00:00",
             "XComponent": XComponentCheckbox.checked,
             "YComponent": YComponentCheckbox.checked,
             "ZComponent": ZComponentCheckbox.checked,

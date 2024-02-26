@@ -30,10 +30,6 @@ class TSDataView(View):
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
 
-        # TODO: спарсить данные с клиента.
-        startDate = "1983-01-01 00:00:00"
-        finalDate = "2024-01-01 00:00:00"
-
         loadedData = cur.execute(f"SELECT date, station{','.join(['', *componentsList])} "                       
                                  f"FROM {TABLE_NAME} "
                                  f"WHERE date >= '{startDate}' AND "
