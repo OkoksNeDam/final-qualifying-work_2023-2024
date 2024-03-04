@@ -54,7 +54,15 @@ else:
     # to start downloading the next batch starting from the next hour.
     last_date_in_table = datetime.strftime(last_date_in_table + relativedelta(hours=1), "%Y%m%d%H")
 
-while True:
+last_date_in_table = "1986110100"
+
+i = 0
+
+# TODO: CHANGE
+# while True:
+while datetime.strptime(last_date_in_table, "%Y%m%d%H") < datetime.today() - relativedelta(days=30):
+    if i % 100 == 0:
+        print(datetime.strptime(last_date_in_table, "%Y%m%d%H"))
     # Date until which data is downloaded to the database.
     # 30 days are subtracted due to the fact that data for the last 30 days is not available.
     end_date = datetime.today() - relativedelta(days=30)
@@ -67,76 +75,85 @@ while True:
         fin = open(FILE_TO_STORE_TEMPORAL_DATA, "r+")
         # Get data from file.
         data = fin.read().splitlines(True)
+        fin.close()
         # check if no data is available on current date.
         if not (not data or data[0] == 'No data for specified stations on given date.' or
                 data[0] == 'Event across the change of the sample rate from 20 to 10 s (01 Nov 1992 00:00 UT)' or
                 "No data for specified date" in data[0]):
-            fin.close()
-            header = data[0].split()
-            # 'YYYY', 'MM', 'DD', 'HH', 'MM', 'SS'
-            date_columns = header[:6]
-            date_columns[3], date_columns[4], date_columns[5] = 'hh', 'mm', 'ss'
-            # 'STATION', 'X', 'STATION', 'Y', 'STATION', 'Z'
-            station_columns = header[6:]
-
-            # Unique station names of current date period.
-            current_stations = set(station_columns[::2])
-
-            for i in range(0, len(station_columns), 2):
-                # 'STATION', 'X', 'STATION', 'Y', 'STATION', 'Z' -->
-                # 'STATION_X', 'X', 'STATION_Y', 'Y', 'STATION_Z', 'Z'
-                station_columns[i] += f"_{station_columns[i + 1]}"
-            # 'STATION_X', 'X', 'STATION_Y', 'Y', 'STATION_Z', 'Z' --> 'STATION_X', 'STATION_Y', 'STATION_Z'
-            station_columns = station_columns[::2]
-            # YYYY MM DD HH MM SS STATION_X STATION_Y STATION_Z...
-            header = date_columns + station_columns
-            # Drop second line ('------------') and add new header.
-            data[1] = " ".join(header) + "\n"
-            data = data[1:]
-            open(FILE_TO_STORE_TEMPORAL_DATA, 'w').close()
-            fout = open(FILE_TO_STORE_TEMPORAL_DATA, "a")
-            fout.writelines(data)
-            fout.close()
-
-            # Data in this is df is stored in this format: date | STATION_X | STATION_Y | STATION_Z | ...
-            df_stage1 = pd.read_csv(FILE_TO_STORE_TEMPORAL_DATA, sep='\s+', na_values=99999.9)
-            # Marge columns YYYY, MM, DD... to one date column.
-            df_stage1 = df_stage1.assign(YYYY=df_stage1.YYYY.astype(str) + '-' + df_stage1.MM.astype(str) + '-' +
-                                              df_stage1.DD.astype(str) + ' ' + df_stage1.hh.astype(str) +
-                                              ':' + df_stage1.mm.astype(str) + ':' + df_stage1.ss.astype(str))
-            df_stage1.rename(columns={"YYYY": "date"}, inplace=True)
-            df_stage1.drop(columns=['MM', 'DD', 'hh', 'mm', 'ss'], inplace=True)
-            df_stage1['date'] = pd.to_datetime(df_stage1['date'])
-
-            # List of stations for which there was no information for the current time period.
-            current_stations_complement = list(STATIONS.difference(current_stations))
-            # Repeat each station name 3 times (to add indexes x, y, z for each station).
-            current_stations_complement = list(np.repeat(current_stations_complement, 3))
-            # Add indexes X, Y, Z for each station in current_stations_complement.
-            # Add columns whose names are stations for which there is no information for the current time period.
-            for i in range(0, len(current_stations_complement), 3):
-                current_stations_complement[i] += f"_X"
-                df_stage1[current_stations_complement[i]] = None
-                current_stations_complement[i + 1] += f"_Y"
-                df_stage1[current_stations_complement[i + 1]] = None
-                current_stations_complement[i + 2] += f"_Z"
-                df_stage1[current_stations_complement[i + 2]] = None
-
-            df_stage1 = df_stage1.replace({np.nan: None})
-
-            for row in range(df_stage1.shape[0]):
-                curr_date = df_stage1.date[row]
-                # Iterate over each station.
-                for col in range(1, df_stage1.shape[1], 3):
-                    station = df_stage1.columns[col][:3]
-                    X = df_stage1.loc[row][col]
-                    Y = df_stage1.loc[row][col + 1]
-                    Z = df_stage1.loc[row][col + 2]
-                    cur.execute(f"INSERT INTO {TABLE_NAME}('date', 'station', 'x', 'y', 'z')"
-                                f"VALUES('{curr_date}', '{station}', '{X}', '{Y}', '{Z}');")
-                    conn.commit()
+            pass
+            # header = data[0].split()
+            # # 'YYYY', 'MM', 'DD', 'HH', 'MM', 'SS'
+            # date_columns = header[:6]
+            # date_columns[3], date_columns[4], date_columns[5] = 'hh', 'mm', 'ss'
+            # # 'STATION', 'X', 'STATION', 'Y', 'STATION', 'Z'
+            # station_columns = header[6:]
+            #
+            # # Unique station names of current date period.
+            # current_stations = set(station_columns[::2])
+            #
+            # for i in range(0, len(station_columns), 2):
+            #     # 'STATION', 'X', 'STATION', 'Y', 'STATION', 'Z' -->
+            #     # 'STATION_X', 'X', 'STATION_Y', 'Y', 'STATION_Z', 'Z'
+            #     station_columns[i] += f"_{station_columns[i + 1]}"
+            # # 'STATION_X', 'X', 'STATION_Y', 'Y', 'STATION_Z', 'Z' --> 'STATION_X', 'STATION_Y', 'STATION_Z'
+            # station_columns = station_columns[::2]
+            # # YYYY MM DD HH MM SS STATION_X STATION_Y STATION_Z...
+            # header = date_columns + station_columns
+            # # Drop second line ('------------') and add new header.
+            # data[1] = " ".join(header) + "\n"
+            # data = data[1:]
+            # open(FILE_TO_STORE_TEMPORAL_DATA, 'w').close()
+            # fout = open(FILE_TO_STORE_TEMPORAL_DATA, "a")
+            # fout.writelines(data)
+            # fout.close()
+            #
+            # # Data in this is df is stored in this format: date | STATION_X | STATION_Y | STATION_Z | ...
+            # df_stage1 = pd.read_csv(FILE_TO_STORE_TEMPORAL_DATA, sep='\s+', na_values=99999.9)
+            # # Marge columns YYYY, MM, DD... to one date column.
+            # df_stage1 = df_stage1.assign(YYYY=df_stage1.YYYY.astype(str) + '-' + df_stage1.MM.astype(str) + '-' +
+            #                                   df_stage1.DD.astype(str) + ' ' + df_stage1.hh.astype(str) +
+            #                                   ':' + df_stage1.mm.astype(str) + ':' + df_stage1.ss.astype(str))
+            # df_stage1.rename(columns={"YYYY": "date"}, inplace=True)
+            # df_stage1.drop(columns=['MM', 'DD', 'hh', 'mm', 'ss'], inplace=True)
+            # df_stage1['date'] = pd.to_datetime(df_stage1['date'])
+            #
+            # # List of stations for which there was no information for the current time period.
+            # current_stations_complement = list(STATIONS.difference(current_stations))
+            # # Repeat each station name 3 times (to add indexes x, y, z for each station).
+            # current_stations_complement = list(np.repeat(current_stations_complement, 3))
+            # # Add indexes X, Y, Z for each station in current_stations_complement.
+            # # Add columns whose names are stations for which there is no information for the current time period.
+            # for i in range(0, len(current_stations_complement), 3):
+            #     current_stations_complement[i] += f"_X"
+            #     df_stage1[current_stations_complement[i]] = None
+            #     current_stations_complement[i + 1] += f"_Y"
+            #     df_stage1[current_stations_complement[i + 1]] = None
+            #     current_stations_complement[i + 2] += f"_Z"
+            #     df_stage1[current_stations_complement[i + 2]] = None
+            #
+            # df_stage1 = df_stage1.replace({np.nan: None})
+            #
+            # for row in range(df_stage1.shape[0]):
+            #     curr_date = df_stage1.date[row]
+            #     # Iterate over each station.
+            #     for col in range(1, df_stage1.shape[1], 3):
+            #         station = df_stage1.columns[col][:3]
+            #         X = df_stage1.loc[row][col]
+            #         Y = df_stage1.loc[row][col + 1]
+            #         Z = df_stage1.loc[row][col + 2]
+            #         cur.execute(f"INSERT INTO {TABLE_NAME}('date', 'station', 'x', 'y', 'z')"
+            #                     f"VALUES('{curr_date}', '{station}', '{X}', '{Y}', '{Z}');")
+            #         conn.commit()
+        else:
+            dates_list = [
+                datetime.strftime(datetime.strptime(last_date_in_table, '%Y%m%d%H') + relativedelta(hours=hour),
+                                  "%Y-%m-%d %H:%M:%S") for hour in range(24)]
+            # for current_date in dates_list:
+            #     for station in STATIONS:
+            #         cur.execute(f"INSERT INTO {TABLE_NAME}('date', 'station', 'x', 'y', 'z')"
+            #                     f"VALUES('{current_date}', '{station}', 'None', 'None', 'None');")
+            #         conn.commit()
         last_date_in_table = datetime.strptime(last_date_in_table, '%Y%m%d%H')
         last_date_in_table = datetime.strftime(last_date_in_table + relativedelta(days=1), "%Y%m%d%H")
         os.remove(FILE_TO_STORE_TEMPORAL_DATA)
-    else:
-        print("NO DATA")
+        i += 1

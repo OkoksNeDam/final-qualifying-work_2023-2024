@@ -1,4 +1,6 @@
 const submitFormButton = document.getElementById('submit-form-button');
+const selectAllStationsButton = document.getElementById('select-all-stations-button');
+const clearAllStationsButton = document.getElementById('clear-all-stations-button');
 let listOfTsBlocks = []
 
 const stationAndCoordinatesDict = {
@@ -27,7 +29,7 @@ for (const key of Object.keys(stationAndCoordinatesDict)) {
     let circle = L.circle(stationAndCoordinatesDict[key], {
         color: 'grey',
         radius: 50000,
-        name: key
+        name: key,
     }).addTo(map);
 
     circlesObjects.push(circle);
@@ -58,29 +60,34 @@ submitFormButton.addEventListener('click', e => {
             selectedStations.push(circle.options.name)
         }
     }
-    let data, dates;
-    // TODO: добавить проверку для введенных данных.
-    $.ajax({
-        url: 'earth_magnetic_field/ts_data',
-        method: 'get',
-        dataType: 'json',
-        async: false,
-        data: { 
-            "selectedStations": selectedStations.join(' '),
-            "startDate": startDateInput.value + " " + startHourSelect.value + ":00:00",
-            "finalDate": finalDateInput.value + " " + finalHourSelect.value + ":00:00",
-            "XComponent": XComponentCheckbox.checked,
-            "YComponent": YComponentCheckbox.checked,
-            "ZComponent": ZComponentCheckbox.checked,
-        },
-        success: function (response) {
-            data = JSON.parse(response.data);
-            dates = response.dates
-        },
-        error: function (response) {
-            alert("Can't get data from server.")
-        },
-    });
+    let data = {};
+    let dates;
+
+    // Get data from DB for each station.
+    for (const station of selectedStations) {
+        // TODO: добавить проверку для введенных данных.
+        $.ajax({
+            url: 'earth_magnetic_field/ts_data',
+            method: 'get',
+            dataType: 'json',
+            async: false,
+            data: { 
+                "selectedStation": station,
+                "startDate": startDateInput.value + " " + startHourSelect.value + ":00:00",
+                "finalDate": finalDateInput.value + " " + finalHourSelect.value + ":00:00",
+                "XComponent": XComponentCheckbox.checked,
+                "YComponent": YComponentCheckbox.checked,
+                "ZComponent": ZComponentCheckbox.checked,
+            },
+            success: function (response) {
+                data[station] = JSON.parse(response.data)[station];
+                dates = response.dates
+            },
+            error: function (jqXhr, textStatus, errorMessage) {
+                alert(errorMessage);
+            },
+        });
+    }
 
     let listOfComponents = []
 
@@ -121,5 +128,21 @@ submitFormButton.addEventListener('click', e => {
             plot_bgcolor: "rgb(237, 237, 237)"
         };
         Plotly.newPlot(iDiv.id, tsLinesInfo, layout, {displaylogo: false});
+    }
+})
+
+selectAllStationsButton.addEventListener('click', e => {
+    for (const circle of circlesObjects) {
+        circle.setStyle({
+            color: 'green'
+        });
+    }
+})
+
+clearAllStationsButton.addEventListener('click', e => {
+    for (const circle of circlesObjects) {
+        circle.setStyle({
+            color: 'grey'
+        });
     }
 })
