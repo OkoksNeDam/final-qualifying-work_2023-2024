@@ -1,21 +1,65 @@
-#map { 
-    height: 340px; 
-    width: 340px;
+* {
+    box-sizing: border-box;
+}
+
+#map {
+    height: 0;
+    padding-bottom: 100%;
+    width: 100%;
 }
 
 .list-of-ts-blocks-div {
     overflow-y: scroll; 
-    float: right; 
-    border: 1px solid rgb(109, 109, 109); 
-    width: 1240px; 
-    height: 880px;
+    border: 1px solid rgb(109, 109, 109);
+    width: 79%; 
+    height: 100%;
+    float: right;
+}
+
+.parameters-of-viz-div {
+    float: left;
+    width: 20%;
+    height: 100%;
+    border: 1px solid rgb(109, 109, 109);
 }
 
 .ts-block-div {
     height: 300px; 
-    border: 1px solid rgb(109, 109, 109); 
+    border: 1px solid rgb(109, 109, 109);
     margin-left: 1em; 
     margin-top: 1em;
     margin-right: 1em;
     margin-bottom: 1em;
+}
+
+.main-wrapper {
+    margin:0 auto;
+    width: 1600px;
+    height: 930px;
+}
+
+.fieldset-in-form {
+    margin-left: 10px; 
+    margin-right: 10px;
+}
+
+#submit-form-button {
+    height: 20px; 
+    background-color: darkgray;
+    width: 94%;
+    display: table;
+    margin: 0 auto;
+}
+
+.ts-plot-settings-div {
+    width: 30%;
+    height: 298px;
+    border-left: 1px solid rgb(109, 109, 109);
+    float: right;
+}
+
+.ts-plot-div {
+    width: 70%;
+    height: 298px;
+    float: left;
 }

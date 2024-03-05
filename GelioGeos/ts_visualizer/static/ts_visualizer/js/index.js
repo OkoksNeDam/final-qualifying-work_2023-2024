@@ -12,6 +12,7 @@ const stationAndCoordinatesDict = {
 
 // Load map and add it to the page.
 let map = L.map('map', { attributionControl:false }).setView([51.505, -0.09], 1);
+
 map.setMaxBounds(map.getBounds());
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -106,11 +107,21 @@ submitFormButton.addEventListener('click', e => {
     let colorsForEachComponent = ['red', 'blue', 'green']
 
     for (const station of selectedStations) {
-        let iDiv = document.createElement('div');
-        iDiv.id = station + '-ts-block';
-        iDiv.classList.add('ts-block-div');
-        listOfTsBlocks.push(iDiv);
-        document.getElementById('list-of-ts-blocks-div').appendChild(iDiv);
+        let outerDiv = document.createElement('div');
+        outerDiv.id = station + '-ts-block';
+        outerDiv.classList.add('ts-block-div');
+        listOfTsBlocks.push(outerDiv);
+
+        let tsPlotSettingsDiv = document.createElement('div');
+        tsPlotSettingsDiv.classList.add('ts-plot-settings-div');
+        outerDiv.appendChild(tsPlotSettingsDiv);
+
+        let tsPlotDiv = document.createElement('div');
+        tsPlotDiv.id = station + '-ts-plot';
+        tsPlotDiv.classList.add('ts-plot-div');
+        outerDiv.appendChild(tsPlotDiv);
+
+        document.getElementById('list-of-ts-blocks-div').appendChild(outerDiv);
         // Array of objects, each object represents x, y and z components of one station.
         let tsLinesInfo = []
         for (let i = 0; i < XComponentCheckbox.checked + YComponentCheckbox.checked + ZComponentCheckbox.checked; i++) {
@@ -125,9 +136,9 @@ submitFormButton.addEventListener('click', e => {
         let layout = {
             title: station + " station",
             paper_bgcolor: "rgb(237, 237, 237)",
-            plot_bgcolor: "rgb(237, 237, 237)"
+            plot_bgcolor: "rgb(237, 237, 237)",
         };
-        Plotly.newPlot(iDiv.id, tsLinesInfo, layout, {displaylogo: false});
+        Plotly.newPlot(tsPlotDiv.id, tsLinesInfo, layout, {displaylogo: false});
     }
 })
 

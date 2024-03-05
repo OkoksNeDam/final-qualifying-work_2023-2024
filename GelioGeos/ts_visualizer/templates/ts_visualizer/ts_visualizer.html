@@ -13,157 +13,156 @@
     <title>Title</title>
 </head>
 <body>
-    <!-- TODO: настроить расположение элементов на странице: совпадающая высота у div и fieldset, отступ от границ окна и тд. -->
-    <h1>
-        Earth magnetic field data visualizer
-    </h1>
-    <fieldset style="float: left;">
-        <legend>Parameters of visualization:</legend>
-
-        <fieldset>
-            <legend>Select type of visualization:</legend>
-    
-            <div>
-              <input type="radio" id="input-radio-2d" name="visualization-type" value="2d" checked />
-              <label for="input-radio-2d">2d</label>
-            </div>
-          
-            <div>
-              <input type="radio" id="input-radio-3d" name="visualization-type" value="3d" />
-              <label for="input-radio-3d">3d</label>
-            </div>
-
-        </fieldset>
-        <br>
-        <fieldset>
-            <legend>Enter dates interval:</legend>
-            <!-- TODO: задать ограничения для ввода дат (например, первая должна быть меньше второй) -->
-            <div>
-                <div style="float: left;">
-                    <div style="background-color: red;">
-                        <label for="start-date-input">Start date</label>
-                        <input type="date" id="start-date-input" value="1983-01-01">
-                        <label for="start-hour-select">hour:</label>
-                        <select id="start-hour-select">
-                            <option value="00" selected="selected">0</option>
-                            <option value="01">1</option>
-                            <option value="02">2</option>
-                            <option value="03">3</option>
-                            <option value="04">4</option>
-                            <option value="05">5</option>
-                            <option value="06">6</option>
-                            <option value="07">7</option>
-                            <option value="08">8</option>
-                            <option value="09">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                            <option value="21">21</option>
-                            <option value="22">22</option>
-                            <option value="23">23</option>
-                        </select>
-                    </div>
+    <div id="main-wrapper" class="main-wrapper">
+        <!-- TODO: настроить расположение элементов на странице: совпадающая высота у div и fieldset, отступ от границ окна и тд. -->
+        <div class="parameters-of-viz-div">
+            <h1 style="text-align:center;">Earth magnetic field data visualizer</h1>
+            <fieldset class="fieldset-in-form">
+                <legend>Select type of visualization:</legend>
         
-                    <div style="background-color: blue;">
-                        <label for="final-date-input">Final date</label>
-                        <input type="date" id="final-date-input" value="2024-01-01">
-                        <label for="final-hour-select">hour:</label>
-                        <select id="final-hour-select">
-                            <option value="00" selected="selected">0</option>
-                            <option value="01">1</option>
-                            <option value="02">2</option>
-                            <option value="03">3</option>
-                            <option value="04">4</option>
-                            <option value="05">5</option>
-                            <option value="06">6</option>
-                            <option value="07">7</option>
-                            <option value="08">8</option>
-                            <option value="09">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                            <option value="21">21</option>
-                            <option value="22">22</option>
-                            <option value="23">23</option>
-                        </select>
+                <div>
+                    <input type="radio" id="input-radio-2d" name="visualization-type" value="2d" checked />
+                    <label for="input-radio-2d">2d</label>
+                </div>
+            
+                <div>
+                    <input type="radio" id="input-radio-3d" name="visualization-type" value="3d" />
+                    <label for="input-radio-3d">3d</label>
+                </div>
+
+            </fieldset>
+            <br>
+            <fieldset class="fieldset-in-form">
+                <legend>Enter dates interval:</legend>
+                <!-- TODO: задать ограничения для ввода дат (например, первая должна быть меньше второй) -->
+                <div>
+                    <div style="float: left;">
+                        <div>
+                            <label for="start-date-input">Start date</label>
+                            <input type="date" id="start-date-input" value="1983-01-01">
+                            <label for="start-hour-select">hour:</label>
+                            <select id="start-hour-select">
+                                <option value="00" selected="selected">0</option>
+                                <option value="01">1</option>
+                                <option value="02">2</option>
+                                <option value="03">3</option>
+                                <option value="04">4</option>
+                                <option value="05">5</option>
+                                <option value="06">6</option>
+                                <option value="07">7</option>
+                                <option value="08">8</option>
+                                <option value="09">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                                <option value="21">21</option>
+                                <option value="22">22</option>
+                                <option value="23">23</option>
+                            </select>
+                        </div>
+            
+                        <div>
+                            <label for="final-date-input">Final date</label>
+                            <input type="date" id="final-date-input" value="2024-01-01">
+                            <label for="final-hour-select">hour:</label>
+                            <select id="final-hour-select">
+                                <option value="00" selected="selected">0</option>
+                                <option value="01">1</option>
+                                <option value="02">2</option>
+                                <option value="03">3</option>
+                                <option value="04">4</option>
+                                <option value="05">5</option>
+                                <option value="06">6</option>
+                                <option value="07">7</option>
+                                <option value="08">8</option>
+                                <option value="09">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                                <option value="21">21</option>
+                                <option value="22">22</option>
+                                <option value="23">23</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div style="background-color: aqua;">44</div>
-            </div>
-        </fieldset>
-        <br>
-        <fieldset>
-            <legend>Time averaging value:</legend>
+            </fieldset>
+            <br>
+            <fieldset class="fieldset-in-form">
+                <legend>Time averaging value:</legend>
 
-            <div>
-                <input type="radio" id="input-radio-hour" name="time-averaging-value" value="hour" checked />
-                <label for="input-radio-hour">hour</label>
-              </div>
-            
-            <div>
-                <input type="radio" id="input-radio-day" name="time-averaging-value" value="day" />
-                <label for="input-radio-day">day</label>
-            </div>
+                <div>
+                    <input type="radio" id="input-radio-hour" name="time-averaging-value" value="hour" checked />
+                    <label for="input-radio-hour">hour</label>
+                </div>
+                
+                <div>
+                    <input type="radio" id="input-radio-day" name="time-averaging-value" value="day" />
+                    <label for="input-radio-day">day</label>
+                </div>
 
-            <div>
-                <input type="radio" id="input-radio-month" name="time-averaging-value" value="month" />
-                <label for="input-radio-month">month</label>
-            </div>
-            
-            <div>
-                <input type="radio" id="input-radio-year" name="time-averaging-value" value="year" />
-                <label for="input-radio-year">year</label>
-            </div>
-        </fieldset>
-        <br>
-        <fieldset>
-            <legend>Select components:</legend>
+                <div>
+                    <input type="radio" id="input-radio-month" name="time-averaging-value" value="month" />
+                    <label for="input-radio-month">month</label>
+                </div>
+                
+                <div>
+                    <input type="radio" id="input-radio-year" name="time-averaging-value" value="year" />
+                    <label for="input-radio-year">year</label>
+                </div>
+            </fieldset>
+            <br>
+            <fieldset class="fieldset-in-form">
+                <legend>Select components:</legend>
 
-            <div>
-                <input type="checkbox" id="checkbox-X-component" name="checkbox-X-component" checked />
-                <label for="checkbox-X-component">X</label>
-            </div>
-            
-            <div>
-                <input type="checkbox" id="checkbox-Y-component" name="checkbox-Y-component" />
-                <label for="checkbox-Y-component">Y</label>
-            </div>
+                <div>
+                    <input type="checkbox" id="checkbox-X-component" name="checkbox-X-component" checked />
+                    <label for="checkbox-X-component">X</label>
+                </div>
+                
+                <div>
+                    <input type="checkbox" id="checkbox-Y-component" name="checkbox-Y-component" />
+                    <label for="checkbox-Y-component">Y</label>
+                </div>
 
-            <div>
-                <input type="checkbox" id="checkbox-Z-component" name="checkbox-Z-component"/>
-                <label for="checkbox-Z-component">Z</label>
-            </div>
-        </fieldset>
-        <br>
-        <fieldset>
-            <button id="select-all-stations-button">Select all</button>
-            <button id="clear-all-stations-button">Clear all</button>
-            <legend>Select stations:</legend>
+                <div>
+                    <input type="checkbox" id="checkbox-Z-component" name="checkbox-Z-component"/>
+                    <label for="checkbox-Z-component">Z</label>
+                </div>
+            </fieldset>
+            <br>
+            <fieldset class="fieldset-in-form">
+                <legend>Select stations:</legend>
 
-            <div id="map"></div>
-        </fieldset>
-        <br>
-        <button id="submit-form-button" style="height: 100%; width: 100%; background-color: darkgray;">Submit</button>
-    </fieldset>
-    <!-- TODO: сделать цвет таким же, как и у fieldset -->
-    <div id = "list-of-ts-blocks-div" class="list-of-ts-blocks-div">
-
+                <div id="map">
+                    <div class="leaflet-top leaflet-right">
+                        <button id="select-all-stations-button" style="pointer-events: auto;">Select all</button>
+                        <button id="clear-all-stations-button" style="pointer-events: auto;">Clear all</button>
+                        <button id="show-station-names-button" style="pointer-events: auto;">Show names</button>
+                    </div>
+                </div>
+            </fieldset>
+            <br>
+            <button id="submit-form-button">Submit</button>
+        </div>
+        <!-- TODO: сделать цвет таким же, как и у fieldset -->
+        <div id = "list-of-ts-blocks-div" class="list-of-ts-blocks-div"></div>
     </div>
     <script src="{% static 'ts_visualizer/js/plotly-2.29.1.min.js' charset='utf-8' %}"></script>
     <script src="{% static 'ts_visualizer/js/jquery-3.7.0.min.js' %}"></script>
