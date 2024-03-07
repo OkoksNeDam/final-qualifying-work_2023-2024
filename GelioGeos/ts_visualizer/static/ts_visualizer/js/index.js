@@ -1,7 +1,8 @@
 const submitFormButton = document.getElementById('submit-form-button');
 const selectAllStationsButton = document.getElementById('select-all-stations-button');
 const clearAllStationsButton = document.getElementById('clear-all-stations-button');
-let listOfTsBlocks = []
+
+const MAX_NUMBER_OF_SELECTED_STATIONS = 10;
 
 const stationAndCoordinatesDict = {
     'NRD': [81.60, -16.67], 'NAL': [78.92, 11.95], 'LYR': [78.20, 15.82], 'HOR': [77.00, 15.60], 'HOP': [76.51, 25.01], 'BJN': [74.50, 19.20], 'NOR': [71.09, 25.79], 'JAN': [70.90, -8.7], 'SOR': [70.54, 22.22], 'SCO': [70.48, -21,97], 'ALT': [69.86, 22.96], 'KEV': [69.76, 27.01], 'TRO': [69.66, 18.94], 'MAS': [69.46, 23.70], 'AND': [69.30, 16.03],
@@ -9,6 +10,17 @@ const stationAndCoordinatesDict = {
     'RVK': [64.94, 10.98], 'LYC': [64.61, 18.75], 'OUJ': [64.52, 27.23], 'LRV': [64.18, -21.7], 'MEK': [62.77, 30.97], 'HAN': [62.25, 26.60], 'HAS': [62.15, 16.61], 'DOB': [62.07, 9.11], 'HOV': [61.51, -6.79], 'NAQ': [61.16, -45.44], 'SOL': [61.08, 4.84], 'NUR': [60.50, 24.65], 'HAR': [60.21, 10.71], 'AAL': [60.18, 19.99], 'UPS': [59.90, 17.35],
     'NRA': [59.57, 15.04], 'KAR': [59.21, 5.24], 'TAR': [58.26, 26.46], 'FKP': [58.16, 13.72], 'GOT': [57.69, 18.57], 'SIN': [57.49, 10.14], 'VXJ': [56.92, 14.94], 'BRZ': [56.17, 24.86], 'BFE': [55.63, 11.67], 'BOR': [55.18, 14.91], 'ROE': [55.17, 8.55], 'HLP': [54.61, 18.82], 'SUW': [54.01, 23.18], 'WNG': [53.74, 9.07], 'NGK': [52.07, 12.68], 'PPN': [51.45, 23.13]
 };
+
+let setOfSelectedStations = new Set();
+let setOfUnselectedStations = new Set();
+
+function countNumberOfselectedComponents() {
+    return document.getElementById('checkbox-X-component').checked +
+           document.getElementById('checkbox-Y-component').checked +
+           document.getElementById('checkbox-Z-component').checked;
+}
+
+let listOfTsBlocks = []
 
 // Load map and add it to the page.
 let map = L.map('map', { attributionControl:false }).setView([51.505, -0.09], 1);
@@ -24,6 +36,31 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // Array of circles, each circle represents station.
 circlesObjects = [];
 
+// TODO: если будет время, то сделать ограничение в 10 станций не для любого количества выбранных компонент, 
+// а индивидуально для каждой.
+function stationOnClick(e) {
+    target = e.sourceTarget
+    if (target.options.color == 'grey') {
+        target.setStyle({color: 'green'});
+        setOfSelectedStations.add(target);
+        setOfUnselectedStations.delete(target);
+        if (setOfSelectedStations.size == MAX_NUMBER_OF_SELECTED_STATIONS) {
+            for (const unselectedCircle of Array.from(setOfUnselectedStations)) {
+                unselectedCircle.setStyle({color: 'red'});
+            }
+        }
+    } else if (target.options.color == 'green') {
+        if (setOfSelectedStations.size == MAX_NUMBER_OF_SELECTED_STATIONS) {
+            for (const unselectedCircle of Array.from(setOfUnselectedStations)) {
+                unselectedCircle.setStyle({color: 'grey'});
+            }
+        } 
+        target.setStyle({color: 'grey'});
+        setOfSelectedStations.delete(target);
+        setOfUnselectedStations.add(target);
+    }
+}
+
 // Create circles and add them to map.
 // TODO: настроить размер кругов, так как они отображаются по-разному.
 for (const key of Object.keys(stationAndCoordinatesDict)) { 
@@ -35,13 +72,14 @@ for (const key of Object.keys(stationAndCoordinatesDict)) {
 
     circlesObjects.push(circle);
 
-    circle.on('click', e => {
-        target = e.sourceTarget
-        target.setStyle({color: target.options.color == 'grey' ? 'green' : 'grey'});
-    });
+    circle.on('click', stationOnClick);
+
+    setOfUnselectedStations.add(circle);
  };
 
 submitFormButton.addEventListener('click', e => {
+
+
     document.getElementById("list-of-ts-blocks-div").innerHTML = ''
 
     const typeOfVizInput = document.querySelector('input[name="visualization-type"]:checked');
@@ -107,46 +145,40 @@ submitFormButton.addEventListener('click', e => {
     let colorsForEachComponent = ['red', 'blue', 'green']
 
     for (const station of selectedStations) {
-        let outerDiv = document.createElement('div');
-        outerDiv.id = station + '-ts-block';
-        outerDiv.classList.add('ts-block-div');
-        listOfTsBlocks.push(outerDiv);
+        for (let i = 0; i < countNumberOfselectedComponents(); i++) {
+            let outerDiv = document.createElement('div');
+            outerDiv.id = station + '-ts-block-component-' + listOfComponents[i];
+            outerDiv.classList.add('ts-block-div');
+            listOfTsBlocks.push(outerDiv);
+    
+            let tsPlotSettingsDiv = document.createElement('div');
+            tsPlotSettingsDiv.classList.add('ts-plot-settings-div');
+            outerDiv.appendChild(tsPlotSettingsDiv);
+    
+            let tsPlotDiv = document.createElement('div');
+            tsPlotDiv.id = station + '-ts-plot-component-' + listOfComponents[i];
+            tsPlotDiv.classList.add('ts-plot-div');
+            outerDiv.appendChild(tsPlotDiv);
+    
+            document.getElementById('list-of-ts-blocks-div').appendChild(outerDiv);
 
-        let tsPlotSettingsDiv = document.createElement('div');
-        tsPlotSettingsDiv.classList.add('ts-plot-settings-div');
-        outerDiv.appendChild(tsPlotSettingsDiv);
-
-        let tsPlotDiv = document.createElement('div');
-        tsPlotDiv.id = station + '-ts-plot';
-        tsPlotDiv.classList.add('ts-plot-div');
-        outerDiv.appendChild(tsPlotDiv);
-
-        document.getElementById('list-of-ts-blocks-div').appendChild(outerDiv);
-        // Array of objects, each object represents x, y and z components of one station.
-        let tsLinesInfo = []
-        for (let i = 0; i < XComponentCheckbox.checked + YComponentCheckbox.checked + ZComponentCheckbox.checked; i++) {
-            tsLinesInfo.push({
+            let currentGraph = {
                 type: "scatter",
                 mode: "lines",
                 x: dates,
                 y: data[station][i],
                 line: {color: colorsForEachComponent[i]},
-                name: listOfComponents[i] + " component"})
+                name: listOfComponents[i] + " component"
+            }
+            
+            let layout = {
+                showlegend: true,
+                title: station + " station",
+                paper_bgcolor: "rgb(237, 237, 237)",
+                plot_bgcolor: "rgb(237, 237, 237)",
+            };
+            Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false});
         }
-        let layout = {
-            title: station + " station",
-            paper_bgcolor: "rgb(237, 237, 237)",
-            plot_bgcolor: "rgb(237, 237, 237)",
-        };
-        Plotly.newPlot(tsPlotDiv.id, tsLinesInfo, layout, {displaylogo: false});
-    }
-})
-
-selectAllStationsButton.addEventListener('click', e => {
-    for (const circle of circlesObjects) {
-        circle.setStyle({
-            color: 'green'
-        });
     }
 })
 
@@ -155,5 +187,9 @@ clearAllStationsButton.addEventListener('click', e => {
         circle.setStyle({
             color: 'grey'
         });
+        if (!setOfUnselectedStations.has(circle)) {
+            setOfUnselectedStations.add(circle);
+        }
     }
+    setOfSelectedStations.clear();
 })

@@ -78,7 +78,6 @@ class TSDataView(View):
                 dataForCurrentStation[i] += [loadedData[idx][i + 2]]
             dataToReturn[loadedData[idx][1]] = dataForCurrentStation
 
-        # TODO: Похоже, что при пустых данных появляется ошибка (error для некоторых станций), надо проверить.
         return JsonResponse({
             "dates": datesToReturn,
             "data": json.dumps(dataToReturn)
