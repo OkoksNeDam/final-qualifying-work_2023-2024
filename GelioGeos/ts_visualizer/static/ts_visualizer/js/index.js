@@ -102,32 +102,6 @@ submitFormButton.addEventListener('click', e => {
     let data = {};
     let dates;
 
-    // Get data from DB for each station.
-    for (const station of selectedStations) {
-        // TODO: добавить проверку для введенных данных.
-        $.ajax({
-            url: 'earth_magnetic_field/ts_data',
-            method: 'get',
-            dataType: 'json',
-            async: false,
-            data: { 
-                "selectedStation": station,
-                "startDate": startDateInput.value + " " + startHourSelect.value + ":00:00",
-                "finalDate": finalDateInput.value + " " + finalHourSelect.value + ":00:00",
-                "XComponent": XComponentCheckbox.checked,
-                "YComponent": YComponentCheckbox.checked,
-                "ZComponent": ZComponentCheckbox.checked,
-            },
-            success: function (response) {
-                data[station] = JSON.parse(response.data)[station];
-                dates = response.dates
-            },
-            error: function (jqXhr, textStatus, errorMessage) {
-                alert(errorMessage);
-            },
-        });
-    }
-
     let listOfComponents = []
 
     if (XComponentCheckbox.checked) {
@@ -140,6 +114,35 @@ submitFormButton.addEventListener('click', e => {
 
     if (ZComponentCheckbox.checked) {
         listOfComponents.push('z')
+    }
+
+    for (const station of selectedStations) {
+        data[station] = new Array(listOfComponents.length);
+        for (const [component_idx, component] of listOfComponents.entries()) {
+            // TODO: добавить проверку для введенных данных.
+            $.ajax({
+                url: 'earth_magnetic_field/ts_data',
+                method: 'get',
+                dataType: 'json',
+                async: false,
+                data: { 
+                    "selectedStation": station,
+                    "selectedComponent": component,
+                    "timeAveragingValueInput": timeAveragingValueInput.value,
+                    "startDate": startDateInput.value + " " + startHourSelect.value + ":00:00",
+                    "finalDate": finalDateInput.value + " " + finalHourSelect.value + ":00:00",
+                },
+                success: function (response) {
+                    // data[station] = JSON.parse(response.data)[station];
+                    loadedData = JSON.parse(response.data);
+                    data[station][component_idx] = loadedData
+                    dates = response.dates;
+                },
+                error: function (jqXhr, textStatus, errorMessage) {
+                    alert(errorMessage);
+                },
+            });
+        }
     }
 
     let colorsForEachComponent = ['red', 'blue', 'green']
