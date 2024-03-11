@@ -11,6 +11,11 @@ import json
 def main_view(request):
     return render(request, "ts_visualizer/ts_visualizer.html")
 
+class TSForecastView(View):
+    def get(self, request):
+        periodOfForecast = request.GET.get('periodOfForecast')
+        print(int(periodOfForecast))
+        return JsonResponse({})
 
 class TSDataView(View):
     def get(self, request):

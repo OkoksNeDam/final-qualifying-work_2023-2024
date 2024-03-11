@@ -79,7 +79,6 @@ for (const key of Object.keys(stationAndCoordinatesDict)) {
 
 submitFormButton.addEventListener('click', e => {
 
-
     document.getElementById("list-of-ts-blocks-div").innerHTML = ''
 
     const typeOfVizInput = document.querySelector('input[name="visualization-type"]:checked');
@@ -92,6 +91,12 @@ submitFormButton.addEventListener('click', e => {
     const YComponentCheckbox = document.getElementById('checkbox-Y-component');
     const ZComponentCheckbox = document.getElementById('checkbox-Z-component');
 
+    if (Date.parse(startDateInput.value + " " + startHourSelect.value + ":00:00") >= 
+        Date.parse(finalDateInput.value + " " + finalHourSelect.value + ":00:00")) {
+            alert("Start date should be less than final date.");
+            return;
+    }
+
     let selectedStations = []
     // Select stations which are marked in green color.
     for (const circle of circlesObjects) {
@@ -99,6 +104,12 @@ submitFormButton.addEventListener('click', e => {
             selectedStations.push(circle.options.name)
         }
     }
+
+    if (selectedStations.length == 0) {
+        alert("At least one station must be selected.");
+        return;
+    }
+
     let data = {};
     let dates;
 
@@ -114,6 +125,10 @@ submitFormButton.addEventListener('click', e => {
 
     if (ZComponentCheckbox.checked) {
         listOfComponents.push('z')
+    }
+
+    if (listOfComponents.length == 0) {
+        alert("At least one component must be selected.")
     }
 
     for (const station of selectedStations) {
@@ -133,7 +148,6 @@ submitFormButton.addEventListener('click', e => {
                     "finalDate": finalDateInput.value + " " + finalHourSelect.value + ":00:00",
                 },
                 success: function (response) {
-                    // data[station] = JSON.parse(response.data)[station];
                     loadedData = JSON.parse(response.data);
                     data[station][component_idx] = loadedData
                     dates = response.dates;
@@ -180,7 +194,47 @@ submitFormButton.addEventListener('click', e => {
                 paper_bgcolor: "rgb(237, 237, 237)",
                 plot_bgcolor: "rgb(237, 237, 237)",
             };
+
             Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false});
+
+            let forecastPeriodInput = document.createElement('input')
+            forecastPeriodInput.id = station + '-forecast-period-' + listOfComponents[i];
+            let forecastPeriodLabel = document.createElement('label');
+            forecastPeriodLabel.innerHTML = `Enter period of forecast (${timeAveragingValueInput.value})`;
+            forecastPeriodLabel.for = forecastPeriodInput.id
+
+            makeTSForecastButton = document.createElement('button')
+            makeTSForecastButton.innerHTML = "Make forecast"
+            makeTSForecastButton.station = station
+            makeTSForecastButton.component = listOfComponents[i]
+            makeTSForecastButton.addEventListener('click', e => {
+                $.ajax({
+                    url: 'earth_magnetic_field/ts_forecast',
+                    method: 'get',
+                    dataType: 'json',
+                    async: false,
+                    data: { 
+                        "periodOfForecast": forecastPeriodInput.value
+                    },
+                    success: function (response) {
+
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                        alert(errorMessage);
+                    },
+                });
+
+                let newLayout = {
+                    showlegend: true,
+                    title: station + " station",
+                    paper_bgcolor: "rgb(237, 237, 237)",
+                    plot_bgcolor: "rgb(125, 8, 8)",
+                };
+                Plotly.newPlot(tsPlotDiv.id, [currentGraph], newLayout, {displaylogo: false});
+            })
+            tsPlotSettingsDiv.appendChild(forecastPeriodLabel);
+            tsPlotSettingsDiv.appendChild(forecastPeriodInput);
+            tsPlotSettingsDiv.appendChild(makeTSForecastButton);
         }
     }
 })
