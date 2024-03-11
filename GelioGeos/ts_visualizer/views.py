@@ -4,6 +4,8 @@ from django.http import JsonResponse
 import pandas as pd
 from datetime import datetime
 from datetime import timedelta
+from torch import nn
+import torch
 import sqlite3
 import json
 
@@ -11,11 +13,39 @@ import json
 def main_view(request):
     return render(request, "ts_visualizer/ts_visualizer.html")
 
+
+NUM_OF_LAGS = 100
+HIDDEN_LAYER_SIZE = 128
+PREDICTION_PERIOD = 1
+
+
+class MLP(nn.Module):
+    def __init__(self, in_dim, hidden_dim, out_dim):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, out_dim)
+        )
+        self.double()
+
+    def forward(self, X):
+        return self.model(X)
+
+
 class TSForecastView(View):
     def get(self, request):
-        periodOfForecast = request.GET.get('periodOfForecast')
-        print(int(periodOfForecast))
+        periodOfForecast = int(request.GET.get('periodOfForecast'))
+        model = MLP(NUM_OF_LAGS, HIDDEN_LAYER_SIZE, PREDICTION_PERIOD)
+        # TODO: change path to model.
+        model.load_state_dict(torch.load(
+            '/Users/pavlom/Desktop/final-qualifying-work_2023-2024/GelioGeos/ts_visualizer/mlp.pt'
+        ))
+        print(model.eval())
         return JsonResponse({})
+
 
 class TSDataView(View):
     def get(self, request):
@@ -62,7 +92,7 @@ class TSDataView(View):
                                                                     finalDate - timedelta(days=1),
                                                                     freq='h')
                           ],
-                "data": json.dumps([None]*len(datesToReturn))
+                "data": json.dumps([None] * len(datesToReturn))
             })
 
         # noinspection PyTypeChecker
