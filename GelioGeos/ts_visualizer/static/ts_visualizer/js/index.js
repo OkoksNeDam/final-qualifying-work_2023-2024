@@ -203,34 +203,44 @@ submitFormButton.addEventListener('click', e => {
             forecastPeriodLabel.innerHTML = `Enter period of forecast (${timeAveragingValueInput.value})`;
             forecastPeriodLabel.for = forecastPeriodInput.id
 
-            makeTSForecastButton = document.createElement('button')
+            let makeTSForecastButton = document.createElement('button')
             makeTSForecastButton.innerHTML = "Make forecast"
             makeTSForecastButton.station = station
             makeTSForecastButton.component = listOfComponents[i]
             makeTSForecastButton.addEventListener('click', e => {
+                let NUM_OF_LAGS = 100;
+                let currentTSData = tsPlotDiv.data[0];
+                let dataWithPrediction;
                 $.ajax({
                     url: 'earth_magnetic_field/ts_forecast',
                     method: 'get',
                     dataType: 'json',
                     async: false,
-                    data: { 
-                        "periodOfForecast": forecastPeriodInput.value
+                    data: {
+                        tsData: currentTSData.y.slice(-NUM_OF_LAGS).toString(),
+                        tsDates: currentTSData.x.slice(-NUM_OF_LAGS).toString(),
+                        periodOfForecast: forecastPeriodInput.value
                     },
                     success: function (response) {
-
+                        dataWithPrediction = JSON.parse(response.data);
                     },
                     error: function (jqXhr, textStatus, errorMessage) {
                         alert(errorMessage);
                     },
                 });
 
-                let newLayout = {
-                    showlegend: true,
-                    title: station + " station",
-                    paper_bgcolor: "rgb(237, 237, 237)",
-                    plot_bgcolor: "rgb(125, 8, 8)",
-                };
-                Plotly.newPlot(tsPlotDiv.id, [currentGraph], newLayout, {displaylogo: false});
+                alert(dataWithPrediction.slice(-20))
+
+                let newGraph = {
+                    type: "scatter",
+                    mode: "lines",
+                    // x: dates,
+                    y: dataWithPrediction,
+                    // y: data[station][i],
+                    line: {color: colorsForEachComponent[i]},
+                    name: listOfComponents[i] + " component"
+                }
+                Plotly.newPlot(tsPlotDiv.id, [newGraph], layout, {displaylogo: false});
             })
             tsPlotSettingsDiv.appendChild(forecastPeriodLabel);
             tsPlotSettingsDiv.appendChild(forecastPeriodInput);
