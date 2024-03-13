@@ -63,6 +63,33 @@ class TSForecastView(View):
         })
 
 
+class TSOutliersView(View):
+    def post(self, request):
+        def zscore(s, window, thresh=3, return_all=False):
+            roll = s.rolling(window=window, min_periods=1, center=True)
+            avg = roll.mean()
+            std = roll.std(ddof=0)
+            z = s.sub(avg).div(std)
+            m = z.between(-thresh, thresh)
+
+            if return_all:
+                return z, avg, std, m
+            return s.where(m, avg)
+
+        tsData = request.POST.get('tsData').split(',')
+        tsDates = request.POST.get('tsDates').split(',')
+        windowSize = int(request.POST.get('windowSize'))
+        tsData = [float(x) for x in tsData]
+
+        df = pd.DataFrame({'dates': tsDates, 'data': tsData})
+        z, avg, std, m = zscore(df['data'], window=windowSize, return_all=True)
+        df_outliers = df.loc[~m, ['dates', 'data']]
+        return JsonResponse({
+            'outliersDates': json.dumps(df_outliers.dates.tolist()),
+            'outliersData': json.dumps(df_outliers.data.tolist())
+        })
+
+
 class TSDataView(View):
     def get(self, request):
         selectedStation = request.GET.get('selectedStation')

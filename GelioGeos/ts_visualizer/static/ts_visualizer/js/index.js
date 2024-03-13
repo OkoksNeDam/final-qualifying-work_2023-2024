@@ -195,12 +195,79 @@ submitFormButton.addEventListener('click', e => {
                 plot_bgcolor: "rgb(237, 237, 237)",
             };
 
-            Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false});
+            Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
 
-            let forecastPeriodInput = document.createElement('input')
+            let tsForecastingFieldset = document.createElement('fieldset')
+            let tsForecastingFieldsetLegend = document.createElement('legend')
+            tsForecastingFieldsetLegend.innerHTML = "Forecasts";
+            tsForecastingFieldset.appendChild(tsForecastingFieldsetLegend);
+
+            let tsOutliersFieldset = document.createElement('fieldset')
+            let tsOutliersFieldsetLegend = document.createElement('legend')
+            tsOutliersFieldsetLegend.innerHTML = "Outliers";
+            tsOutliersFieldset.appendChild(tsOutliersFieldsetLegend);
+
+            let outliersWindowInput = document.createElement('input');
+            let outliersWindowLabel = document.createElement('label');
+            outliersWindowLabel.innerHTML = "Enter window: ";
+            tsOutliersFieldset.appendChild(outliersWindowLabel);
+            tsOutliersFieldset.appendChild(outliersWindowInput);
+
+            let showOutliersButton = document.createElement('button');
+            showOutliersButton.innerHTML = 'Show outliers';
+            tsOutliersFieldset.appendChild(showOutliersButton);
+
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                  var cookies = document.cookie.split(';');
+                  for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                    }
+                  }
+                }
+                return cookieValue;
+            }
+
+            showOutliersButton.addEventListener('click', e => {
+                let outliersDates, outliersData;
+                $.ajax({
+                    url: 'earth_magnetic_field/ts_outliers',
+                    method: 'post',
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                        csrfmiddlewaretoken: getCookie('csrftoken'),
+                        tsData: data[station][i].toString(),
+                        tsDates: dates.toString(),
+                        windowSize: outliersWindowInput.value
+                    },
+                    success: function (response) {
+                        outliersDates = JSON.parse(response.outliersDates);
+                        outliersData = JSON.parse(response.outliersData);
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                        alert(errorMessage);
+                    },
+                });
+                let outliersDots = {
+                    x: outliersDates,
+                    y: outliersData,
+                    mode: 'markers',
+                    name: 'outliers',
+                    color: 'yellow'
+                }
+                Plotly.newPlot(tsPlotDiv.id, [currentGraph, outliersDots], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+            });
+
+            let forecastPeriodInput = document.createElement('input');
             forecastPeriodInput.id = station + '-forecast-period-' + listOfComponents[i];
             let forecastPeriodLabel = document.createElement('label');
-            forecastPeriodLabel.innerHTML = `Enter period of forecast (${timeAveragingValueInput.value})`;
+            forecastPeriodLabel.innerHTML = `Enter period of forecast (${timeAveragingValueInput.value}):`;
             forecastPeriodLabel.for = forecastPeriodInput.id
 
             let makeTSForecastButton = document.createElement('button')
@@ -269,11 +336,21 @@ submitFormButton.addEventListener('click', e => {
                     name: 'forecast'
                 }
 
-                Plotly.newPlot(tsPlotDiv.id, [dataGraph, predictionGraph], layout, {displaylogo: false});
+                Plotly.newPlot(tsPlotDiv.id, [dataGraph, predictionGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
             })
-            tsPlotSettingsDiv.appendChild(forecastPeriodLabel);
-            tsPlotSettingsDiv.appendChild(forecastPeriodInput);
-            tsPlotSettingsDiv.appendChild(makeTSForecastButton);
+
+            let resetGraphButton = document.createElement('button');
+            resetGraphButton.innerHTML = 'Reset graph';
+            resetGraphButton.addEventListener('click', e => {
+                Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+            })
+
+            tsPlotSettingsDiv.appendChild(tsForecastingFieldset);
+            tsPlotSettingsDiv.appendChild(tsOutliersFieldset);
+            tsPlotSettingsDiv.appendChild(resetGraphButton);
+            tsForecastingFieldset.appendChild(forecastPeriodLabel);
+            tsForecastingFieldset.appendChild(forecastPeriodInput);
+            tsForecastingFieldset.appendChild(makeTSForecastButton);
         }
     }
 })
