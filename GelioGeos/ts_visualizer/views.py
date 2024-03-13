@@ -42,7 +42,6 @@ class TSForecastView(View):
         periodOfForecast = int(request.GET.get('periodOfForecast'))
         tsData = request.GET.get('tsData').split(',')
         tsData = [float(x) for x in tsData]
-        tsDates = request.GET.get('tsDates').split(',')
         scaler = load('/Users/pavlom/Desktop/final-qualifying-work_2023-2024/GelioGeos/ts_visualizer/std_scaler.bin')
         tsDataScaled = scaler.transform(np.array(tsData).reshape(-1, 1)).reshape(-1, 1)
         model = MLP(NUM_OF_LAGS, HIDDEN_LAYER_SIZE, PREDICTION_PERIOD)
@@ -60,7 +59,7 @@ class TSForecastView(View):
             X = X[1:]
             X = torch.cat([X, pred])
         return JsonResponse({
-            'data': json.dumps(X.tolist() + y_pred)
+            'prediction': json.dumps(np.squeeze(scaler.inverse_transform(np.array(y_pred).reshape(-1, 1))).tolist())
         })
 
 

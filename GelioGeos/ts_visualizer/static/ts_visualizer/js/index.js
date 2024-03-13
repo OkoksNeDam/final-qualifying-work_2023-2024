@@ -208,9 +208,19 @@ submitFormButton.addEventListener('click', e => {
             makeTSForecastButton.station = station
             makeTSForecastButton.component = listOfComponents[i]
             makeTSForecastButton.addEventListener('click', e => {
+                if (station != 'KEV' || listOfComponents[i] != 'y' || timeAveragingValueInput.value != 'hour') {
+                    // TODO: добавить enum для таких ошибок
+                    alert('Forecasts are available for hourly data of y component of station KEV.');
+                    return;
+                }
+
+                if (Number(forecastPeriodInput.value) > 100) {
+                    alert('Forecast period should be less than 100.');
+                    return;
+                }
                 let NUM_OF_LAGS = 100;
                 let currentTSData = tsPlotDiv.data[0];
-                let dataWithPrediction;
+                let dataForecast;
                 $.ajax({
                     url: 'earth_magnetic_field/ts_forecast',
                     method: 'get',
@@ -218,29 +228,48 @@ submitFormButton.addEventListener('click', e => {
                     async: false,
                     data: {
                         tsData: currentTSData.y.slice(-NUM_OF_LAGS).toString(),
-                        tsDates: currentTSData.x.slice(-NUM_OF_LAGS).toString(),
                         periodOfForecast: forecastPeriodInput.value
                     },
                     success: function (response) {
-                        dataWithPrediction = JSON.parse(response.data);
+                        dataForecast = JSON.parse(response.prediction);
                     },
                     error: function (jqXhr, textStatus, errorMessage) {
                         alert(errorMessage);
                     },
                 });
 
-                alert(dataWithPrediction.slice(-20))
+                Date.prototype.addHours = function(h) {
+                    this.setTime(this.getTime() + (h*60*60*1000));
+                    return this;
+                }
 
-                let newGraph = {
+                let lastDateInData = dates.slice(-1)
+                let listOfDatesForForecast = new Array(forecastPeriodInput.value)
+
+                for (let index = 0; index < forecastPeriodInput.value; index++) {
+                    lastDateInData = new Date(lastDateInData).addHours(1);
+                    listOfDatesForForecast[index] = lastDateInData;
+                }
+
+                let dataGraph = {
                     type: "scatter",
                     mode: "lines",
-                    // x: dates,
-                    y: dataWithPrediction,
-                    // y: data[station][i],
+                    x: dates,
+                    y: data[station][i],
                     line: {color: colorsForEachComponent[i]},
                     name: listOfComponents[i] + " component"
                 }
-                Plotly.newPlot(tsPlotDiv.id, [newGraph], layout, {displaylogo: false});
+
+                let predictionGraph = {
+                    type: "scatter",
+                    mode: "lines",
+                    x: listOfDatesForForecast,
+                    y: dataForecast,
+                    line: {color: 'purple'},
+                    name: 'forecast'
+                }
+
+                Plotly.newPlot(tsPlotDiv.id, [dataGraph, predictionGraph], layout, {displaylogo: false});
             })
             tsPlotSettingsDiv.appendChild(forecastPeriodLabel);
             tsPlotSettingsDiv.appendChild(forecastPeriodInput);
