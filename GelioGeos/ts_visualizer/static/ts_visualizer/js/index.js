@@ -208,8 +208,10 @@ submitFormButton.addEventListener('click', e => {
             tsOutliersFieldset.appendChild(tsOutliersFieldsetLegend);
 
             let outliersWindowInput = document.createElement('input');
+            outliersWindowInput.type = 'number';
+            outliersWindowInput.min = 1;
             let outliersWindowLabel = document.createElement('label');
-            outliersWindowLabel.innerHTML = "Enter window: ";
+            outliersWindowLabel.innerHTML = "Enter window size: ";
             tsOutliersFieldset.appendChild(outliersWindowLabel);
             tsOutliersFieldset.appendChild(outliersWindowInput);
 
@@ -259,9 +261,59 @@ submitFormButton.addEventListener('click', e => {
                     y: outliersData,
                     mode: 'markers',
                     name: 'outliers',
-                    color: 'yellow'
+                    marker: {
+                        color: 'rgb(0, 128, 255)',
+                        line: {
+                          color: 'rgb(0, 128, 255)',
+                          width: 1
+                        }
+                    }
                 }
                 Plotly.newPlot(tsPlotDiv.id, [currentGraph, outliersDots], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+            });
+
+            let removeOutliersButton = document.createElement('button');
+            removeOutliersButton.innerHTML = 'Remove outliers';
+            tsOutliersFieldset.appendChild(removeOutliersButton);
+
+            removeOutliersButton.addEventListener('click', e => {
+                let outliersDates, outliersData;
+                $.ajax({
+                    url: 'earth_magnetic_field/ts_outliers',
+                    method: 'post',
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                        csrfmiddlewaretoken: getCookie('csrftoken'),
+                        tsData: data[station][i].toString(),
+                        tsDates: dates.toString(),
+                        windowSize: outliersWindowInput.value
+                    },
+                    success: function (response) {
+                        outliersDates = JSON.parse(response.outliersDates);
+                        outliersData = JSON.parse(response.outliersData);
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                        alert(errorMessage);
+                    },
+                });
+                let outliersDatesSet = new Set(outliersDates);
+                let dataWithoutOutliers = [...data[station][i]];
+                for (let index = 0; index < dates.length; index++) {
+                    if (outliersDatesSet.has(dates[index])) {
+                        dataWithoutOutliers[index] = NaN;
+                    }
+                }
+                let graphWithoutOutliers = {
+                    type: "scatter",
+                    mode: "lines",
+                    x: dates,
+                    y: dataWithoutOutliers,
+                    line: {color: colorsForEachComponent[i]},
+                    name: listOfComponents[i] + " component"
+                }
+    
+                Plotly.newPlot(tsPlotDiv.id, [graphWithoutOutliers], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
             });
 
             let forecastPeriodInput = document.createElement('input');

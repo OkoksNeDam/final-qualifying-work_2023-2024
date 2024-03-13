@@ -39,6 +39,7 @@ class MLP(nn.Module):
 
 class TSForecastView(View):
     def get(self, request):
+        # TODO: добавить ограничение в 100 часов для данных.
         periodOfForecast = int(request.GET.get('periodOfForecast'))
         tsData = request.GET.get('tsData').split(',')
         tsData = [float(x) for x in tsData]
@@ -75,6 +76,8 @@ class TSOutliersView(View):
             if return_all:
                 return z, avg, std, m
             return s.where(m, avg)
+
+        # TODO: для KAU z компоненты возникает ошибка raise ValueError("All arrays must be of the same length").
 
         tsData = request.POST.get('tsData').split(',')
         tsDates = request.POST.get('tsDates').split(',')
