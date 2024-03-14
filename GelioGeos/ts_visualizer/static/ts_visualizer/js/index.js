@@ -127,8 +127,16 @@ submitFormButton.addEventListener('click', e => {
         listOfComponents.push('z')
     }
 
-    if (listOfComponents.length == 0) {
-        alert("At least one component must be selected.")
+    if (typeOfVizInput.value == '2d') {
+        if (listOfComponents.length == 0) {
+            alert("At least one component must be selected for 2d visualization.");
+            return;
+        }
+    } else {
+        if (listOfComponents.length != 2) {
+            alert("Exactly 2 components must be selected for 3d visualization.");
+            return;
+        }
     }
 
     for (const station of selectedStations) {
@@ -161,47 +169,322 @@ submitFormButton.addEventListener('click', e => {
 
     let colorsForEachComponent = ['red', 'blue', 'green']
 
-    for (const station of selectedStations) {
-        for (let i = 0; i < countNumberOfselectedComponents(); i++) {
-            function getCookie(name) {
-                var cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                  var cookies = document.cookie.split(';');
-                  for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                      break;
-                    }
-                  }
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
-                return cookieValue;
             }
+        }
+        return cookieValue;
+    }
 
+    if (typeOfVizInput.value == "2d") {
+        for (const station of selectedStations) {
+            for (let i = 0; i < countNumberOfselectedComponents(); i++) {
+    
+                let outerDiv = document.createElement('div');
+                outerDiv.id = station + '-ts-block-component-' + listOfComponents[i];
+                outerDiv.classList.add('ts-block-div');
+                listOfTsBlocks.push(outerDiv);
+        
+                let tsPlotSettingsDiv = document.createElement('div');
+                tsPlotSettingsDiv.classList.add('ts-plot-settings-div');
+                outerDiv.appendChild(tsPlotSettingsDiv);
+        
+                let tsPlotDiv = document.createElement('div');
+                tsPlotDiv.id = station + '-ts-plot-component-' + listOfComponents[i];
+                tsPlotDiv.classList.add('ts-plot-div');
+                outerDiv.appendChild(tsPlotDiv);
+        
+                document.getElementById('list-of-ts-blocks-div').appendChild(outerDiv);
+    
+                let currentGraph = {
+                    type: "scatter",
+                    mode: "lines",
+                    x: dates,
+                    y: data[station][i],
+                    line: {color: colorsForEachComponent[i]},
+                    name: listOfComponents[i] + " component"
+                }
+                
+                let layout = {
+                    showlegend: true,
+                    title: station + " station",
+                    paper_bgcolor: "rgb(237, 237, 237)",
+                    plot_bgcolor: "rgb(237, 237, 237)",
+                };
+    
+                Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+    
+                let tsForecastingFieldset = document.createElement('fieldset')
+                let tsForecastingFieldsetLegend = document.createElement('legend')
+                tsForecastingFieldsetLegend.innerHTML = "Forecasts";
+                tsForecastingFieldset.appendChild(tsForecastingFieldsetLegend);
+    
+                let tsOutliersFieldset = document.createElement('fieldset')
+                let tsOutliersFieldsetLegend = document.createElement('legend')
+                tsOutliersFieldsetLegend.innerHTML = "Outliers";
+                tsOutliersFieldset.appendChild(tsOutliersFieldsetLegend);
+    
+                let tsSmoothingFieldset = document.createElement('fieldset');
+                let tsSmoothingFieldsetLegend = document.createElement('legend');
+                tsSmoothingFieldsetLegend.innerHTML = "Smoothing";
+                tsSmoothingFieldset.appendChild(tsSmoothingFieldsetLegend);
+    
+                // TODO: для всех полей ввода сделать проверку.
+                let smoothingLevelInput = document.createElement('input');
+                let smoothingLevelLabel = document.createElement('label');
+                smoothingLevelLabel.innerHTML = "Enter smoothing level: ";
+                tsSmoothingFieldset.appendChild(smoothingLevelLabel);
+                tsSmoothingFieldset.appendChild(smoothingLevelInput);
+    
+                let smoothTSButton = document.createElement('button');
+                smoothTSButton.innerHTML = "Smooth";
+    
+                smoothTSButton.addEventListener('click', e => {
+                    let smoothedData;
+                    $.ajax({
+                        url: 'earth_magnetic_field/ts_smoothing',
+                        method: 'post',
+                        dataType: 'json',
+                        async: false,
+                        data: {
+                            csrfmiddlewaretoken: getCookie('csrftoken'),
+                            tsData: data[station][i].toString(),
+                            smoothingLevel: smoothingLevelInput.value
+                        },
+                        success: function (response) {
+                            smoothedData = JSON.parse(response.smoothedData);
+                        },
+                        error: function (jqXhr, textStatus, errorMessage) {
+                            alert(errorMessage);
+                        },
+                    });
+                    let smoothedGraph = {
+                        type: "scatter",
+                        mode: "lines",
+                        x: dates,
+                        y: smoothedData,
+                        line: {color: colorsForEachComponent[i]},
+                        name: listOfComponents[i] + " component smoothed"
+                    }
+                    Plotly.newPlot(tsPlotDiv.id, [smoothedGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+                });
+    
+                let outliersWindowInput = document.createElement('input');
+                outliersWindowInput.type = 'number';
+                outliersWindowInput.min = 1;
+                let outliersWindowLabel = document.createElement('label');
+                outliersWindowLabel.innerHTML = "Enter window size: ";
+                tsOutliersFieldset.appendChild(outliersWindowLabel);
+                tsOutliersFieldset.appendChild(outliersWindowInput);
+    
+                let showOutliersButton = document.createElement('button');
+                showOutliersButton.innerHTML = 'Show outliers';
+                tsOutliersFieldset.appendChild(showOutliersButton);
+    
+                showOutliersButton.addEventListener('click', e => {
+                    let outliersDates, outliersData;
+                    $.ajax({
+                        url: 'earth_magnetic_field/ts_outliers',
+                        method: 'post',
+                        dataType: 'json',
+                        async: false,
+                        data: {
+                            csrfmiddlewaretoken: getCookie('csrftoken'),
+                            tsData: data[station][i].toString(),
+                            tsDates: dates.toString(),
+                            windowSize: outliersWindowInput.value
+                        },
+                        success: function (response) {
+                            outliersDates = JSON.parse(response.outliersDates);
+                            outliersData = JSON.parse(response.outliersData);
+                        },
+                        error: function (jqXhr, textStatus, errorMessage) {
+                            alert(errorMessage);
+                        },
+                    });
+                    let outliersDots = {
+                        x: outliersDates,
+                        y: outliersData,
+                        mode: 'markers',
+                        name: 'outliers',
+                        marker: {
+                            color: 'rgb(0, 128, 255)',
+                            line: {
+                              color: 'rgb(0, 128, 255)',
+                              width: 1
+                            }
+                        }
+                    }
+                    Plotly.newPlot(tsPlotDiv.id, [currentGraph, outliersDots], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+                });
+    
+                let removeOutliersButton = document.createElement('button');
+                removeOutliersButton.innerHTML = 'Remove outliers';
+                tsOutliersFieldset.appendChild(removeOutliersButton);
+    
+                removeOutliersButton.addEventListener('click', e => {
+                    let outliersDates, outliersData;
+                    $.ajax({
+                        url: 'earth_magnetic_field/ts_outliers',
+                        method: 'post',
+                        dataType: 'json',
+                        async: false,
+                        data: {
+                            csrfmiddlewaretoken: getCookie('csrftoken'),
+                            tsData: data[station][i].toString(),
+                            tsDates: dates.toString(),
+                            windowSize: outliersWindowInput.value
+                        },
+                        success: function (response) {
+                            outliersDates = JSON.parse(response.outliersDates);
+                            outliersData = JSON.parse(response.outliersData);
+                        },
+                        error: function (jqXhr, textStatus, errorMessage) {
+                            alert(errorMessage);
+                        },
+                    });
+                    let outliersDatesSet = new Set(outliersDates);
+                    let dataWithoutOutliers = [...data[station][i]];
+                    for (let index = 0; index < dates.length; index++) {
+                        if (outliersDatesSet.has(dates[index])) {
+                            dataWithoutOutliers[index] = NaN;
+                        }
+                    }
+                    let graphWithoutOutliers = {
+                        type: "scatter",
+                        mode: "lines",
+                        x: dates,
+                        y: dataWithoutOutliers,
+                        line: {color: colorsForEachComponent[i]},
+                        name: listOfComponents[i] + " component"
+                    }
+        
+                    Plotly.newPlot(tsPlotDiv.id, [graphWithoutOutliers], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+                });
+    
+                let forecastPeriodInput = document.createElement('input');
+                forecastPeriodInput.id = station + '-forecast-period-' + listOfComponents[i];
+                let forecastPeriodLabel = document.createElement('label');
+                forecastPeriodLabel.innerHTML = `Enter period of forecast (${timeAveragingValueInput.value}):`;
+                forecastPeriodLabel.for = forecastPeriodInput.id
+    
+                let makeTSForecastButton = document.createElement('button')
+                makeTSForecastButton.innerHTML = "Make forecast"
+                makeTSForecastButton.station = station
+                makeTSForecastButton.component = listOfComponents[i]
+    
+                // TODO: похоже, что после прогнозирования что-то ломается и не получается отображать выбросы.
+    
+                makeTSForecastButton.addEventListener('click', e => {
+                    if (station != 'KEV' || listOfComponents[i] != 'y' || timeAveragingValueInput.value != 'hour') {
+                        // TODO: добавить enum для таких ошибок
+                        alert('Forecasts are available for hourly data of y component of station KEV.');
+                        return;
+                    }
+    
+                    if (Number(forecastPeriodInput.value) > 100) {
+                        alert('Forecast period should be less than 100.');
+                        return;
+                    }
+                    let NUM_OF_LAGS = 100;
+                    let dataForecast;
+                    $.ajax({
+                        url: 'earth_magnetic_field/ts_forecast',
+                        method: 'get',
+                        dataType: 'json',
+                        async: false,
+                        data: {
+                            tsData: data[station][i].slice(-NUM_OF_LAGS).toString(),
+                            periodOfForecast: forecastPeriodInput.value
+                        },
+                        success: function (response) {
+                            dataForecast = JSON.parse(response.prediction);
+                        },
+                        error: function (jqXhr, textStatus, errorMessage) {
+                            alert(errorMessage);
+                        },
+                    });
+    
+                    Date.prototype.addHours = function(h) {
+                        this.setTime(this.getTime() + (h*60*60*1000));
+                        return this;
+                    }
+    
+                    let lastDateInData = dates.slice(-1);
+                    let listOfDatesForForecast = new Array(forecastPeriodInput.value);
+    
+                    for (let index = 0; index < forecastPeriodInput.value; index++) {
+                        lastDateInData = new Date(lastDateInData).addHours(1);
+                        listOfDatesForForecast[index] = lastDateInData;
+                    }
+    
+                    let dataGraph = {
+                        type: "scatter",
+                        mode: "lines",
+                        x: dates,
+                        y: data[station][i],
+                        line: {color: colorsForEachComponent[i]},
+                        name: listOfComponents[i] + " component"
+                    }
+    
+                    let predictionGraph = {
+                        type: "scatter",
+                        mode: "lines",
+                        x: listOfDatesForForecast,
+                        y: dataForecast,
+                        line: {color: 'purple'},
+                        name: 'forecast'
+                    }
+    
+                    Plotly.newPlot(tsPlotDiv.id, [dataGraph, predictionGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+                })
+    
+                let resetGraphButton = document.createElement('button');
+                resetGraphButton.innerHTML = 'Reset graph';
+                resetGraphButton.addEventListener('click', e => {
+                    Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+                })
+    
+                tsPlotSettingsDiv.appendChild(tsForecastingFieldset);
+                tsPlotSettingsDiv.appendChild(tsOutliersFieldset);
+                tsPlotSettingsDiv.appendChild(tsSmoothingFieldset);
+                tsForecastingFieldset.appendChild(forecastPeriodLabel);
+                tsForecastingFieldset.appendChild(forecastPeriodInput);
+                tsForecastingFieldset.appendChild(makeTSForecastButton);
+                tsSmoothingFieldset.appendChild(smoothTSButton);
+                tsPlotSettingsDiv.appendChild(resetGraphButton);
+            }
+        }
+    } else {
+        for (const station of selectedStations) {
             let outerDiv = document.createElement('div');
-            outerDiv.id = station + '-ts-block-component-' + listOfComponents[i];
-            outerDiv.classList.add('ts-block-div');
+            outerDiv.id = station + '-ts-block-component-' + listOfComponents.toString();
+            outerDiv.classList.add('ts-block-div-3d');
             listOfTsBlocks.push(outerDiv);
-    
-            let tsPlotSettingsDiv = document.createElement('div');
-            tsPlotSettingsDiv.classList.add('ts-plot-settings-div');
-            outerDiv.appendChild(tsPlotSettingsDiv);
-    
+
             let tsPlotDiv = document.createElement('div');
-            tsPlotDiv.id = station + '-ts-plot-component-' + listOfComponents[i];
-            tsPlotDiv.classList.add('ts-plot-div');
+            tsPlotDiv.id = station + '-ts-plot-component-' + listOfComponents.toString();
+            tsPlotDiv.classList.add('ts-plot-div-3d');
             outerDiv.appendChild(tsPlotDiv);
     
             document.getElementById('list-of-ts-blocks-div').appendChild(outerDiv);
 
             let currentGraph = {
-                type: "scatter",
-                mode: "lines",
+                type: 'scatter3d',
+                mode: 'lines',
                 x: dates,
-                y: data[station][i],
-                line: {color: colorsForEachComponent[i]},
-                name: listOfComponents[i] + " component"
+                y: data[station][0],
+                z: data[station][1],
+                name: listOfComponents.toString() + " components"
             }
             
             let layout = {
@@ -211,247 +494,8 @@ submitFormButton.addEventListener('click', e => {
                 plot_bgcolor: "rgb(237, 237, 237)",
             };
 
-            Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
-
-            let tsForecastingFieldset = document.createElement('fieldset')
-            let tsForecastingFieldsetLegend = document.createElement('legend')
-            tsForecastingFieldsetLegend.innerHTML = "Forecasts";
-            tsForecastingFieldset.appendChild(tsForecastingFieldsetLegend);
-
-            let tsOutliersFieldset = document.createElement('fieldset')
-            let tsOutliersFieldsetLegend = document.createElement('legend')
-            tsOutliersFieldsetLegend.innerHTML = "Outliers";
-            tsOutliersFieldset.appendChild(tsOutliersFieldsetLegend);
-
-            let tsSmoothingFieldset = document.createElement('fieldset');
-            let tsSmoothingFieldsetLegend = document.createElement('legend');
-            tsSmoothingFieldsetLegend.innerHTML = "Smoothing";
-            tsSmoothingFieldset.appendChild(tsSmoothingFieldsetLegend);
-
-            // TODO: для всех полей ввода сделать проверку.
-            let smoothingLevelInput = document.createElement('input');
-            let smoothingLevelLabel = document.createElement('label');
-            smoothingLevelLabel.innerHTML = "Enter smoothing level: ";
-            tsSmoothingFieldset.appendChild(smoothingLevelLabel);
-            tsSmoothingFieldset.appendChild(smoothingLevelInput);
-
-            let smoothTSButton = document.createElement('button');
-            smoothTSButton.innerHTML = "Smooth";
-
-            smoothTSButton.addEventListener('click', e => {
-                let smoothedData;
-                $.ajax({
-                    url: 'earth_magnetic_field/ts_smoothing',
-                    method: 'post',
-                    dataType: 'json',
-                    async: false,
-                    data: {
-                        csrfmiddlewaretoken: getCookie('csrftoken'),
-                        tsData: data[station][i].toString(),
-                        smoothingLevel: smoothingLevelInput.value
-                    },
-                    success: function (response) {
-                        smoothedData = JSON.parse(response.smoothedData);
-                    },
-                    error: function (jqXhr, textStatus, errorMessage) {
-                        alert(errorMessage);
-                    },
-                });
-                let smoothedGraph = {
-                    type: "scatter",
-                    mode: "lines",
-                    x: dates,
-                    y: smoothedData,
-                    line: {color: colorsForEachComponent[i]},
-                    name: listOfComponents[i] + " component smoothed"
-                }
-                Plotly.newPlot(tsPlotDiv.id, [smoothedGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
-            });
-
-            let outliersWindowInput = document.createElement('input');
-            outliersWindowInput.type = 'number';
-            outliersWindowInput.min = 1;
-            let outliersWindowLabel = document.createElement('label');
-            outliersWindowLabel.innerHTML = "Enter window size: ";
-            tsOutliersFieldset.appendChild(outliersWindowLabel);
-            tsOutliersFieldset.appendChild(outliersWindowInput);
-
-            let showOutliersButton = document.createElement('button');
-            showOutliersButton.innerHTML = 'Show outliers';
-            tsOutliersFieldset.appendChild(showOutliersButton);
-
-            showOutliersButton.addEventListener('click', e => {
-                let outliersDates, outliersData;
-                $.ajax({
-                    url: 'earth_magnetic_field/ts_outliers',
-                    method: 'post',
-                    dataType: 'json',
-                    async: false,
-                    data: {
-                        csrfmiddlewaretoken: getCookie('csrftoken'),
-                        tsData: data[station][i].toString(),
-                        tsDates: dates.toString(),
-                        windowSize: outliersWindowInput.value
-                    },
-                    success: function (response) {
-                        outliersDates = JSON.parse(response.outliersDates);
-                        outliersData = JSON.parse(response.outliersData);
-                    },
-                    error: function (jqXhr, textStatus, errorMessage) {
-                        alert(errorMessage);
-                    },
-                });
-                let outliersDots = {
-                    x: outliersDates,
-                    y: outliersData,
-                    mode: 'markers',
-                    name: 'outliers',
-                    marker: {
-                        color: 'rgb(0, 128, 255)',
-                        line: {
-                          color: 'rgb(0, 128, 255)',
-                          width: 1
-                        }
-                    }
-                }
-                Plotly.newPlot(tsPlotDiv.id, [currentGraph, outliersDots], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
-            });
-
-            let removeOutliersButton = document.createElement('button');
-            removeOutliersButton.innerHTML = 'Remove outliers';
-            tsOutliersFieldset.appendChild(removeOutliersButton);
-
-            removeOutliersButton.addEventListener('click', e => {
-                let outliersDates, outliersData;
-                $.ajax({
-                    url: 'earth_magnetic_field/ts_outliers',
-                    method: 'post',
-                    dataType: 'json',
-                    async: false,
-                    data: {
-                        csrfmiddlewaretoken: getCookie('csrftoken'),
-                        tsData: data[station][i].toString(),
-                        tsDates: dates.toString(),
-                        windowSize: outliersWindowInput.value
-                    },
-                    success: function (response) {
-                        outliersDates = JSON.parse(response.outliersDates);
-                        outliersData = JSON.parse(response.outliersData);
-                    },
-                    error: function (jqXhr, textStatus, errorMessage) {
-                        alert(errorMessage);
-                    },
-                });
-                let outliersDatesSet = new Set(outliersDates);
-                let dataWithoutOutliers = [...data[station][i]];
-                for (let index = 0; index < dates.length; index++) {
-                    if (outliersDatesSet.has(dates[index])) {
-                        dataWithoutOutliers[index] = NaN;
-                    }
-                }
-                let graphWithoutOutliers = {
-                    type: "scatter",
-                    mode: "lines",
-                    x: dates,
-                    y: dataWithoutOutliers,
-                    line: {color: colorsForEachComponent[i]},
-                    name: listOfComponents[i] + " component"
-                }
-    
-                Plotly.newPlot(tsPlotDiv.id, [graphWithoutOutliers], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
-            });
-
-            let forecastPeriodInput = document.createElement('input');
-            forecastPeriodInput.id = station + '-forecast-period-' + listOfComponents[i];
-            let forecastPeriodLabel = document.createElement('label');
-            forecastPeriodLabel.innerHTML = `Enter period of forecast (${timeAveragingValueInput.value}):`;
-            forecastPeriodLabel.for = forecastPeriodInput.id
-
-            let makeTSForecastButton = document.createElement('button')
-            makeTSForecastButton.innerHTML = "Make forecast"
-            makeTSForecastButton.station = station
-            makeTSForecastButton.component = listOfComponents[i]
-
-            // TODO: похоже, что после прогнозирования что-то ломается и не получается отображать выбросы.
-
-            makeTSForecastButton.addEventListener('click', e => {
-                if (station != 'KEV' || listOfComponents[i] != 'y' || timeAveragingValueInput.value != 'hour') {
-                    // TODO: добавить enum для таких ошибок
-                    alert('Forecasts are available for hourly data of y component of station KEV.');
-                    return;
-                }
-
-                if (Number(forecastPeriodInput.value) > 100) {
-                    alert('Forecast period should be less than 100.');
-                    return;
-                }
-                let NUM_OF_LAGS = 100;
-                let dataForecast;
-                $.ajax({
-                    url: 'earth_magnetic_field/ts_forecast',
-                    method: 'get',
-                    dataType: 'json',
-                    async: false,
-                    data: {
-                        tsData: data[station][i].slice(-NUM_OF_LAGS).toString(),
-                        periodOfForecast: forecastPeriodInput.value
-                    },
-                    success: function (response) {
-                        dataForecast = JSON.parse(response.prediction);
-                    },
-                    error: function (jqXhr, textStatus, errorMessage) {
-                        alert(errorMessage);
-                    },
-                });
-
-                Date.prototype.addHours = function(h) {
-                    this.setTime(this.getTime() + (h*60*60*1000));
-                    return this;
-                }
-
-                let lastDateInData = dates.slice(-1);
-                let listOfDatesForForecast = new Array(forecastPeriodInput.value);
-
-                for (let index = 0; index < forecastPeriodInput.value; index++) {
-                    lastDateInData = new Date(lastDateInData).addHours(1);
-                    listOfDatesForForecast[index] = lastDateInData;
-                }
-
-                let dataGraph = {
-                    type: "scatter",
-                    mode: "lines",
-                    x: dates,
-                    y: data[station][i],
-                    line: {color: colorsForEachComponent[i]},
-                    name: listOfComponents[i] + " component"
-                }
-
-                let predictionGraph = {
-                    type: "scatter",
-                    mode: "lines",
-                    x: listOfDatesForForecast,
-                    y: dataForecast,
-                    line: {color: 'purple'},
-                    name: 'forecast'
-                }
-
-                Plotly.newPlot(tsPlotDiv.id, [dataGraph, predictionGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
-            })
-
-            let resetGraphButton = document.createElement('button');
-            resetGraphButton.innerHTML = 'Reset graph';
-            resetGraphButton.addEventListener('click', e => {
-                Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
-            })
-
-            tsPlotSettingsDiv.appendChild(tsForecastingFieldset);
-            tsPlotSettingsDiv.appendChild(tsOutliersFieldset);
-            tsPlotSettingsDiv.appendChild(tsSmoothingFieldset);
-            tsForecastingFieldset.appendChild(forecastPeriodLabel);
-            tsForecastingFieldset.appendChild(forecastPeriodInput);
-            tsForecastingFieldset.appendChild(makeTSForecastButton);
-            tsSmoothingFieldset.appendChild(smoothTSButton);
-            tsPlotSettingsDiv.appendChild(resetGraphButton);
+            // Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+            Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false});
         }
     }
 })
