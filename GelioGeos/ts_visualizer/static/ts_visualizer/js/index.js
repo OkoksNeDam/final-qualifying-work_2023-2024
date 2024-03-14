@@ -386,7 +386,6 @@ submitFormButton.addEventListener('click', e => {
                     return;
                 }
                 let NUM_OF_LAGS = 100;
-                let currentTSData = tsPlotDiv.data[0];
                 let dataForecast;
                 $.ajax({
                     url: 'earth_magnetic_field/ts_forecast',
@@ -394,7 +393,7 @@ submitFormButton.addEventListener('click', e => {
                     dataType: 'json',
                     async: false,
                     data: {
-                        tsData: currentTSData.y.slice(-NUM_OF_LAGS).toString(),
+                        tsData: data[station][i].slice(-NUM_OF_LAGS).toString(),
                         periodOfForecast: forecastPeriodInput.value
                     },
                     success: function (response) {
