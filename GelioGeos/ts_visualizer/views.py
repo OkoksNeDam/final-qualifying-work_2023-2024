@@ -10,6 +10,7 @@ import sqlite3
 import json
 from joblib import load
 import numpy as np
+from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing
 
 
 def main_view(request):
@@ -90,6 +91,20 @@ class TSOutliersView(View):
         return JsonResponse({
             'outliersDates': json.dumps(df_outliers.dates.tolist()),
             'outliersData': json.dumps(df_outliers.data.tolist())
+        })
+
+
+class TSSmoothingView(View):
+    def post(self, request):
+        tsData = request.POST.get('tsData').split(',')
+        tsData = [float(x) for x in tsData]
+        smoothingLevel = float(request.POST.get('smoothingLevel'))
+        fit1 = SimpleExpSmoothing(tsData, initialization_method="heuristic").fit(
+            smoothing_level=smoothingLevel, optimized=False
+        )
+
+        return JsonResponse({
+            'smoothedData': json.dumps(fit1.fittedvalues.tolist())
         })
 
 

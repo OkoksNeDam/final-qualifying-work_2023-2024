@@ -163,6 +163,22 @@ submitFormButton.addEventListener('click', e => {
 
     for (const station of selectedStations) {
         for (let i = 0; i < countNumberOfselectedComponents(); i++) {
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                  var cookies = document.cookie.split(';');
+                  for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                    }
+                  }
+                }
+                return cookieValue;
+            }
+
             let outerDiv = document.createElement('div');
             outerDiv.id = station + '-ts-block-component-' + listOfComponents[i];
             outerDiv.classList.add('ts-block-div');
@@ -207,6 +223,51 @@ submitFormButton.addEventListener('click', e => {
             tsOutliersFieldsetLegend.innerHTML = "Outliers";
             tsOutliersFieldset.appendChild(tsOutliersFieldsetLegend);
 
+            let tsSmoothingFieldset = document.createElement('fieldset');
+            let tsSmoothingFieldsetLegend = document.createElement('legend');
+            tsSmoothingFieldsetLegend.innerHTML = "Smoothing";
+            tsSmoothingFieldset.appendChild(tsSmoothingFieldsetLegend);
+
+            // TODO: для всех полей ввода сделать проверку.
+            let smoothingLevelInput = document.createElement('input');
+            let smoothingLevelLabel = document.createElement('label');
+            smoothingLevelLabel.innerHTML = "Enter smoothing level: ";
+            tsSmoothingFieldset.appendChild(smoothingLevelLabel);
+            tsSmoothingFieldset.appendChild(smoothingLevelInput);
+
+            let smoothTSButton = document.createElement('button');
+            smoothTSButton.innerHTML = "Smooth";
+
+            smoothTSButton.addEventListener('click', e => {
+                let smoothedData;
+                $.ajax({
+                    url: 'earth_magnetic_field/ts_smoothing',
+                    method: 'post',
+                    dataType: 'json',
+                    async: false,
+                    data: {
+                        csrfmiddlewaretoken: getCookie('csrftoken'),
+                        tsData: data[station][i].toString(),
+                        smoothingLevel: smoothingLevelInput.value
+                    },
+                    success: function (response) {
+                        smoothedData = JSON.parse(response.smoothedData);
+                    },
+                    error: function (jqXhr, textStatus, errorMessage) {
+                        alert(errorMessage);
+                    },
+                });
+                let smoothedGraph = {
+                    type: "scatter",
+                    mode: "lines",
+                    x: dates,
+                    y: smoothedData,
+                    line: {color: colorsForEachComponent[i]},
+                    name: listOfComponents[i] + " component smoothed"
+                }
+                Plotly.newPlot(tsPlotDiv.id, [smoothedGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
+            });
+
             let outliersWindowInput = document.createElement('input');
             outliersWindowInput.type = 'number';
             outliersWindowInput.min = 1;
@@ -218,22 +279,6 @@ submitFormButton.addEventListener('click', e => {
             let showOutliersButton = document.createElement('button');
             showOutliersButton.innerHTML = 'Show outliers';
             tsOutliersFieldset.appendChild(showOutliersButton);
-
-            function getCookie(name) {
-                var cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                  var cookies = document.cookie.split(';');
-                  for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                      break;
-                    }
-                  }
-                }
-                return cookieValue;
-            }
 
             showOutliersButton.addEventListener('click', e => {
                 let outliersDates, outliersData;
@@ -326,6 +371,9 @@ submitFormButton.addEventListener('click', e => {
             makeTSForecastButton.innerHTML = "Make forecast"
             makeTSForecastButton.station = station
             makeTSForecastButton.component = listOfComponents[i]
+
+            // TODO: похоже, что после прогнозирования что-то ломается и не получается отображать выбросы.
+
             makeTSForecastButton.addEventListener('click', e => {
                 if (station != 'KEV' || listOfComponents[i] != 'y' || timeAveragingValueInput.value != 'hour') {
                     // TODO: добавить enum для таких ошибок
@@ -362,8 +410,8 @@ submitFormButton.addEventListener('click', e => {
                     return this;
                 }
 
-                let lastDateInData = dates.slice(-1)
-                let listOfDatesForForecast = new Array(forecastPeriodInput.value)
+                let lastDateInData = dates.slice(-1);
+                let listOfDatesForForecast = new Array(forecastPeriodInput.value);
 
                 for (let index = 0; index < forecastPeriodInput.value; index++) {
                     lastDateInData = new Date(lastDateInData).addHours(1);
@@ -399,10 +447,12 @@ submitFormButton.addEventListener('click', e => {
 
             tsPlotSettingsDiv.appendChild(tsForecastingFieldset);
             tsPlotSettingsDiv.appendChild(tsOutliersFieldset);
-            tsPlotSettingsDiv.appendChild(resetGraphButton);
+            tsPlotSettingsDiv.appendChild(tsSmoothingFieldset);
             tsForecastingFieldset.appendChild(forecastPeriodLabel);
             tsForecastingFieldset.appendChild(forecastPeriodInput);
             tsForecastingFieldset.appendChild(makeTSForecastButton);
+            tsSmoothingFieldset.appendChild(smoothTSButton);
+            tsPlotSettingsDiv.appendChild(resetGraphButton);
         }
     }
 })

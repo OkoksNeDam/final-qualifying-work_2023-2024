@@ -25,5 +25,6 @@ urlpatterns = [
     path("earth_magnetic_field", ts_visualizer_views.main_view),
     path("earth_magnetic_field/ts_data", ts_visualizer_views.TSDataView.as_view()),
     path("earth_magnetic_field/ts_forecast", ts_visualizer_views.TSForecastView.as_view()),
-    path("earth_magnetic_field/ts_outliers", ts_visualizer_views.TSOutliersView.as_view())
+    path("earth_magnetic_field/ts_outliers", ts_visualizer_views.TSOutliersView.as_view()),
+    path("earth_magnetic_field/ts_smoothing", ts_visualizer_views.TSSmoothingView.as_view())
 ]
