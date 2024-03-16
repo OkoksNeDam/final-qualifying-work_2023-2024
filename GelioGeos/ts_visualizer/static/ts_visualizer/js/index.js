@@ -14,6 +14,10 @@ const stationAndCoordinatesDict = {
 let setOfSelectedStations = new Set();
 let setOfUnselectedStations = new Set();
 
+function isInteger(value) {
+    return /^\d+$/.test(value);
+}
+
 function countNumberOfselectedComponents() {
     return document.getElementById('checkbox-X-component').checked +
            document.getElementById('checkbox-Y-component').checked +
@@ -240,15 +244,24 @@ submitFormButton.addEventListener('click', e => {
     
                 // TODO: для всех полей ввода сделать проверку.
                 let smoothingLevelInput = document.createElement('input');
+                smoothingLevelInput.type = 'range';
+                smoothingLevelInput.min = 0.001;
+                smoothingLevelInput.max = 1;
+                smoothingLevelInput.step = 0.0001;
+                smoothingLevelInput.value = 0.5;
+
                 let smoothingLevelLabel = document.createElement('label');
-                smoothingLevelLabel.innerHTML = "Enter smoothing level: ";
+                smoothingLevelLabel.innerHTML = "Smoothing level: ";
                 tsSmoothingFieldset.appendChild(smoothingLevelLabel);
                 tsSmoothingFieldset.appendChild(smoothingLevelInput);
+
+                let smoothingLevelCurrentValueLabel = document.createElement('label');
+                smoothingLevelCurrentValueLabel.innerHTML = "Value: " + smoothingLevelInput.value;
+
+                tsSmoothingFieldset.appendChild(smoothingLevelCurrentValueLabel);
     
-                let smoothTSButton = document.createElement('button');
-                smoothTSButton.innerHTML = "Smooth";
-    
-                smoothTSButton.addEventListener('click', e => {
+                smoothingLevelInput.addEventListener('mouseup', e => {
+                    smoothingLevelCurrentValueLabel.innerHTML = "Value: " + e.target.value;
                     let smoothedData;
                     $.ajax({
                         url: 'earth_magnetic_field/ts_smoothing',
@@ -273,7 +286,7 @@ submitFormButton.addEventListener('click', e => {
                         x: dates,
                         y: smoothedData,
                         line: {color: colorsForEachComponent[i]},
-                        name: listOfComponents[i] + " component smoothed"
+                        name: listOfComponents[i] + ` component<br>smoothed`
                     }
                     Plotly.newPlot(tsPlotDiv.id, [smoothedGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
                 });
@@ -291,6 +304,12 @@ submitFormButton.addEventListener('click', e => {
                 tsOutliersFieldset.appendChild(showOutliersButton);
     
                 showOutliersButton.addEventListener('click', e => {
+
+                    if (!isInteger(outliersWindowInput.value) || Number(outliersWindowInput.value) < 2 || Number(outliersWindowInput.value) > data[station][i].length) {
+                        alert("Window size should be integer in range [2, data_length].")
+                        return;
+                    }
+
                     let outliersDates, outliersData;
                     $.ajax({
                         url: 'earth_magnetic_field/ts_outliers',
@@ -332,7 +351,13 @@ submitFormButton.addEventListener('click', e => {
                 tsOutliersFieldset.appendChild(removeOutliersButton);
     
                 removeOutliersButton.addEventListener('click', e => {
-                    let outliersDates, outliersData;
+
+                    if (!isInteger(outliersWindowInput.value) || Number(outliersWindowInput.value) < 2 || Number(outliersWindowInput.value) > data[station][i].length) {
+                        alert("Window size should be integer in range [2, data_length].")
+                        return;
+                    }
+
+                    let outliersDates;
                     $.ajax({
                         url: 'earth_magnetic_field/ts_outliers',
                         method: 'post',
@@ -346,7 +371,6 @@ submitFormButton.addEventListener('click', e => {
                         },
                         success: function (response) {
                             outliersDates = JSON.parse(response.outliersDates);
-                            outliersData = JSON.parse(response.outliersData);
                         },
                         error: function (jqXhr, textStatus, errorMessage) {
                             alert(errorMessage);
@@ -372,6 +396,7 @@ submitFormButton.addEventListener('click', e => {
                 });
     
                 let forecastPeriodInput = document.createElement('input');
+                forecastPeriodInput.type = 'number';
                 forecastPeriodInput.id = station + '-forecast-period-' + listOfComponents[i];
                 let forecastPeriodLabel = document.createElement('label');
                 forecastPeriodLabel.innerHTML = `Enter period of forecast (${timeAveragingValueInput.value}):`;
@@ -390,11 +415,12 @@ submitFormButton.addEventListener('click', e => {
                         alert('Forecasts are available for hourly data of y component of station KEV.');
                         return;
                     }
-    
-                    if (Number(forecastPeriodInput.value) > 100) {
-                        alert('Forecast period should be less than 100.');
+
+                    if (!isInteger(forecastPeriodInput.value) || Number(forecastPeriodInput.value) > 100 || Number(forecastPeriodInput.value) < 2) {
+                        alert('Forecast period should be integer in range [2, 100].');
                         return;
                     }
+
                     let NUM_OF_LAGS = 100;
                     let dataForecast;
                     $.ajax({
@@ -460,7 +486,6 @@ submitFormButton.addEventListener('click', e => {
                 tsForecastingFieldset.appendChild(forecastPeriodLabel);
                 tsForecastingFieldset.appendChild(forecastPeriodInput);
                 tsForecastingFieldset.appendChild(makeTSForecastButton);
-                tsSmoothingFieldset.appendChild(smoothTSButton);
                 tsPlotSettingsDiv.appendChild(resetGraphButton);
             }
         }
