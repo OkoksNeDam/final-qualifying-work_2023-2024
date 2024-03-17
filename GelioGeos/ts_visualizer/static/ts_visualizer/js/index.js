@@ -33,9 +33,36 @@ map.setMaxBounds(map.getBounds());
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     noWrap: true,
-    maxZoom: 19,
+    maxZoom: 20,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
+
+
+// for (const key of Object.keys(stationAndCoordinatesDict)) { 
+//     let markerHtmlStyles = `
+//         width: 3rem;
+//         height: 3rem;
+//         display: block;
+//         left: -1.5rem;
+//         top: -1.5rem;
+//         position: relative;
+//         display: flex;
+//         justify-content: center;
+//         align-items: center;
+//         font-size: ${10}px;
+//         `
+//     const icon = L.divIcon({
+//         className: "my-custom-pin",
+//         html: `<span style="${markerHtmlStyles}">${key}</span>`,
+//         iconAnchor: [1,1]
+//     })
+    
+//     var textLatLng = stationAndCoordinatesDict[key];  
+//     let myTextLabel = L.marker(textLatLng, {
+//         icon: icon,
+//         zIndexOffset: 1000     // Make appear above other map features
+//     }).addTo(map);
+// };
 
 // Array of circles, each circle represents station.
 circlesObjects = [];
@@ -44,6 +71,7 @@ circlesObjects = [];
 // а индивидуально для каждой.
 function stationOnClick(e) {
     target = e.sourceTarget
+    alert(target.options.radius)
     if (target.options.color == 'grey') {
         target.setStyle({color: 'green'});
         setOfSelectedStations.add(target);
@@ -68,9 +96,8 @@ function stationOnClick(e) {
 // Create circles and add them to map.
 // TODO: настроить размер кругов, так как они отображаются по-разному.
 for (const key of Object.keys(stationAndCoordinatesDict)) { 
-    let circle = L.circle(stationAndCoordinatesDict[key], {
+    let circle = L.circle(stationAndCoordinatesDict[key], 50000, {
         color: 'grey',
-        radius: 50000,
         name: key,
     }).addTo(map);
 
@@ -79,7 +106,7 @@ for (const key of Object.keys(stationAndCoordinatesDict)) {
     circle.on('click', stationOnClick);
 
     setOfUnselectedStations.add(circle);
- };
+};
 
 submitFormButton.addEventListener('click', e => {
 
@@ -201,6 +228,9 @@ submitFormButton.addEventListener('click', e => {
                 let tsPlotSettingsDiv = document.createElement('div');
                 tsPlotSettingsDiv.classList.add('ts-plot-settings-div');
                 outerDiv.appendChild(tsPlotSettingsDiv);
+
+                let amountOfDataLabel = document.createElement('Label');
+                amountOfDataLabel.innerHTML = "Amount of data: " + data[station][i].length;
         
                 let tsPlotDiv = document.createElement('div');
                 tsPlotDiv.id = station + '-ts-plot-component-' + listOfComponents[i];
@@ -246,7 +276,7 @@ submitFormButton.addEventListener('click', e => {
                 let smoothingLevelInput = document.createElement('input');
                 smoothingLevelInput.type = 'range';
                 smoothingLevelInput.min = 0.001;
-                smoothingLevelInput.max = 1;
+                smoothingLevelInput.max = 1.000;
                 smoothingLevelInput.step = 0.0001;
                 smoothingLevelInput.value = 0.5;
 
@@ -487,6 +517,7 @@ submitFormButton.addEventListener('click', e => {
                 tsForecastingFieldset.appendChild(forecastPeriodInput);
                 tsForecastingFieldset.appendChild(makeTSForecastButton);
                 tsPlotSettingsDiv.appendChild(resetGraphButton);
+                tsPlotSettingsDiv.appendChild(amountOfDataLabel);
             }
         }
     } else {

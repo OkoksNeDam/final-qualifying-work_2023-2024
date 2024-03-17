@@ -73,6 +73,10 @@
     float: left;
 }
 
+.station-circle {
+    background-color: red;
+}
+
 .ts-plot-div-3d {
     width: 100%;
     height: 100%;
