@@ -1,5 +1,4 @@
 const submitFormButton = document.getElementById('submit-form-button');
-const selectAllStationsButton = document.getElementById('select-all-stations-button');
 const clearAllStationsButton = document.getElementById('clear-all-stations-button');
 
 const MAX_NUMBER_OF_SELECTED_STATIONS = 10;
@@ -33,36 +32,9 @@ map.setMaxBounds(map.getBounds());
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     noWrap: true,
-    maxZoom: 20,
+    maxZoom: 5,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
-
-
-// for (const key of Object.keys(stationAndCoordinatesDict)) { 
-//     let markerHtmlStyles = `
-//         width: 3rem;
-//         height: 3rem;
-//         display: block;
-//         left: -1.5rem;
-//         top: -1.5rem;
-//         position: relative;
-//         display: flex;
-//         justify-content: center;
-//         align-items: center;
-//         font-size: ${10}px;
-//         `
-//     const icon = L.divIcon({
-//         className: "my-custom-pin",
-//         html: `<span style="${markerHtmlStyles}">${key}</span>`,
-//         iconAnchor: [1,1]
-//     })
-    
-//     var textLatLng = stationAndCoordinatesDict[key];  
-//     let myTextLabel = L.marker(textLatLng, {
-//         icon: icon,
-//         zIndexOffset: 1000     // Make appear above other map features
-//     }).addTo(map);
-// };
 
 // Array of circles, each circle represents station.
 circlesObjects = [];
@@ -70,8 +42,7 @@ circlesObjects = [];
 // TODO: если будет время, то сделать ограничение в 10 станций не для любого количества выбранных компонент, 
 // а индивидуально для каждой.
 function stationOnClick(e) {
-    target = e.sourceTarget
-    alert(target.options.radius)
+    target = e.sourceTarget;
     if (target.options.color == 'grey') {
         target.setStyle({color: 'green'});
         setOfSelectedStations.add(target);
@@ -566,4 +537,48 @@ clearAllStationsButton.addEventListener('click', e => {
         }
     }
     setOfSelectedStations.clear();
+})
+
+let displayedStationsMarkers = [];
+
+let showStationNamesButton = document.getElementById('show-station-names-button');
+let stationsAreDisplayed = false;
+showStationNamesButton.addEventListener('click', e => {
+    if (stationsAreDisplayed) {
+        for (const marker of displayedStationsMarkers) {
+            map.removeLayer(marker);
+        }
+        showStationNamesButton.innerHTML = 'Show names';
+        stationsAreDisplayed = false;
+    } else {
+        for (const key of Object.keys(stationAndCoordinatesDict)) { 
+            let markerHtmlStyles = `
+                width: 3rem;
+                height: 3rem;
+                display: block;
+                left: -1.5rem;
+                top: -1.5rem;
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: ${10}px;
+                `
+            const icon = L.divIcon({
+                className: "my-custom-pin",
+                html: `<span style="${markerHtmlStyles}">${key}</span>`,
+                iconAnchor: [1,1]
+            })
+            
+            var textLatLng = stationAndCoordinatesDict[key];  
+            let stationMarker = L.marker(textLatLng, {
+                icon: icon,
+                zIndexOffset: 1000,
+                interactive: false
+            }).addTo(map);
+            displayedStationsMarkers.push(stationMarker);
+        };
+        showStationNamesButton.innerHTML = 'Hide names';
+        stationsAreDisplayed = true
+    }
 })
