@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse
@@ -36,18 +38,24 @@ class MLP(nn.Module):
         return self.model(X)
 
 
+# PATH_TO_MODEL = '/Users/pavlom/Desktop/final-qualifying-work_2023-2024/GelioGeos/ts_visualizer/mlp.pt'
+# PATH_TO_SCALER = '/Users/pavlom/Desktop/final-qualifying-work_2023-2024/GelioGeos/ts_visualizer/std_scaler.bin'
+PATH_TO_MODEL = 'mlp.pt'
+PATH_TO_SCALER = 'std_scaler.bin'
+
+
 class TSForecastView(View):
     def get(self, request):
-        # TODO: добавить ограничение в 100 часов для данных.
+
         periodOfForecast = int(request.GET.get('periodOfForecast'))
         tsData = request.GET.get('tsData').split(',')
         tsData = [float(x) for x in tsData]
-        scaler = load('/Users/pavlom/Desktop/final-qualifying-work_2023-2024/GelioGeos/ts_visualizer/std_scaler.bin')
+        scaler = load(PATH_TO_SCALER)
         tsDataScaled = scaler.transform(np.array(tsData).reshape(-1, 1)).reshape(-1, 1)
         model = MLP(NUM_OF_LAGS, HIDDEN_LAYER_SIZE, PREDICTION_PERIOD)
         # TODO: change path to model.
         model.load_state_dict(torch.load(
-            '/Users/pavlom/Desktop/final-qualifying-work_2023-2024/GelioGeos/ts_visualizer/mlp.pt'
+            PATH_TO_MODEL
         ))
         model.eval()
 
@@ -75,8 +83,6 @@ class TSOutliersView(View):
             if return_all:
                 return z, avg, std, m
             return s.where(m, avg)
-
-        # TODO: для KAU z компоненты возникает ошибка raise ValueError("All arrays must be of the same length").
 
         tsData = request.POST.get('tsData').split(',')
         tsDates = request.POST.get('tsDates').split(',')

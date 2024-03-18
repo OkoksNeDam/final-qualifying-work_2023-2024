@@ -489,7 +489,7 @@ submitFormButton.addEventListener('click', e => {
                         return this;
                     }
     
-                    let lastDateInData = [station][i].slice(-1);
+                    let lastDateInData = dates[station][i].slice(-1);
                     let listOfDatesForForecast = new Array(forecastPeriodInput.value);
     
                     for (let index = 0; index < forecastPeriodInput.value; index++) {
@@ -500,7 +500,7 @@ submitFormButton.addEventListener('click', e => {
                     let dataGraph = {
                         type: "scatter",
                         mode: "lines",
-                        x: [station][i],
+                        x: dates[station][i],
                         y: data[station][i],
                         line: {color: colorsForEachComponent[i]},
                         name: listOfComponents[i] + " component"
