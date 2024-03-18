@@ -36,6 +36,38 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
+let stationsMarkers = [];
+
+for (const key of Object.keys(stationAndCoordinatesDict)) { 
+    let markerHtmlStyles = `
+        width: 3rem;
+        height: 3rem;
+        display: block;
+        left: -1.5rem;
+        top: -1.5rem;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 10px;
+        font-weight: bold;
+        color: blue;
+        `
+    const icon = L.divIcon({
+        className: "my-custom-pin",
+        html: `<span style="${markerHtmlStyles}">${key}</span>`,
+        iconAnchor: [1,1]
+    })
+    
+    var textLatLng = stationAndCoordinatesDict[key];  
+    let stationMarker = L.marker(textLatLng, {
+        icon: icon,
+        zIndexOffset: 1000,
+        interactive: false
+    });
+    stationsMarkers.push(stationMarker);
+};
+
 // Array of circles, each circle represents station.
 circlesObjects = [];
 
@@ -43,6 +75,7 @@ circlesObjects = [];
 // а индивидуально для каждой.
 function stationOnClick(e) {
     target = e.sourceTarget;
+    // TODO: для цветов добавить enumы.
     if (target.options.color == 'grey') {
         target.setStyle({color: 'green'});
         setOfSelectedStations.add(target);
@@ -67,9 +100,10 @@ function stationOnClick(e) {
 // Create circles and add them to map.
 // TODO: настроить размер кругов, так как они отображаются по-разному.
 for (const key of Object.keys(stationAndCoordinatesDict)) { 
-    let circle = L.circle(stationAndCoordinatesDict[key], 50000, {
+    let circle = L.circle(stationAndCoordinatesDict[key], 25000, {
         color: 'grey',
         name: key,
+        fillOpacity: 0
     }).addTo(map);
 
     circlesObjects.push(circle);
@@ -113,7 +147,7 @@ submitFormButton.addEventListener('click', e => {
     }
 
     let data = {};
-    let dates;
+    let dates = {};
 
     let listOfComponents = []
 
@@ -143,6 +177,7 @@ submitFormButton.addEventListener('click', e => {
 
     for (const station of selectedStations) {
         data[station] = new Array(listOfComponents.length);
+        dates[station] = new Array(listOfComponents.length);
         for (const [component_idx, component] of listOfComponents.entries()) {
             // TODO: добавить проверку для введенных данных.
             $.ajax({
@@ -158,9 +193,8 @@ submitFormButton.addEventListener('click', e => {
                     "finalDate": finalDateInput.value + " " + finalHourSelect.value + ":00:00",
                 },
                 success: function (response) {
-                    loadedData = JSON.parse(response.data);
-                    data[station][component_idx] = loadedData
-                    dates = response.dates;
+                    data[station][component_idx] = JSON.parse(response.data)
+                    dates[station][component_idx] = response.dates;
                 },
                 error: function (jqXhr, textStatus, errorMessage) {
                     alert(errorMessage);
@@ -202,6 +236,7 @@ submitFormButton.addEventListener('click', e => {
 
                 let amountOfDataLabel = document.createElement('Label');
                 amountOfDataLabel.innerHTML = "Amount of data: " + data[station][i].length;
+                amountOfDataLabel.classList.add('amount-of-data-label');
         
                 let tsPlotDiv = document.createElement('div');
                 tsPlotDiv.id = station + '-ts-plot-component-' + listOfComponents[i];
@@ -213,7 +248,7 @@ submitFormButton.addEventListener('click', e => {
                 let currentGraph = {
                     type: "scatter",
                     mode: "lines",
-                    x: dates,
+                    x: dates[station][i],
                     y: data[station][i],
                     line: {color: colorsForEachComponent[i]},
                     name: listOfComponents[i] + " component"
@@ -262,6 +297,10 @@ submitFormButton.addEventListener('click', e => {
                 tsSmoothingFieldset.appendChild(smoothingLevelCurrentValueLabel);
     
                 smoothingLevelInput.addEventListener('mouseup', e => {
+                    if (data[station][i].length < 10) {
+                        alert("The amount of data to be smoothed must be greater than or equal to 10");
+                        return;
+                    }
                     smoothingLevelCurrentValueLabel.innerHTML = "Value: " + e.target.value;
                     let smoothedData;
                     $.ajax({
@@ -284,7 +323,7 @@ submitFormButton.addEventListener('click', e => {
                     let smoothedGraph = {
                         type: "scatter",
                         mode: "lines",
-                        x: dates,
+                        x: dates[station][i],
                         y: smoothedData,
                         line: {color: colorsForEachComponent[i]},
                         name: listOfComponents[i] + ` component<br>smoothed`
@@ -320,7 +359,7 @@ submitFormButton.addEventListener('click', e => {
                         data: {
                             csrfmiddlewaretoken: getCookie('csrftoken'),
                             tsData: data[station][i].toString(),
-                            tsDates: dates.toString(),
+                            tsDates: dates[station][i].toString(),
                             windowSize: outliersWindowInput.value
                         },
                         success: function (response) {
@@ -367,7 +406,7 @@ submitFormButton.addEventListener('click', e => {
                         data: {
                             csrfmiddlewaretoken: getCookie('csrftoken'),
                             tsData: data[station][i].toString(),
-                            tsDates: dates.toString(),
+                            tsDates: dates[station][i].toString(),
                             windowSize: outliersWindowInput.value
                         },
                         success: function (response) {
@@ -379,15 +418,15 @@ submitFormButton.addEventListener('click', e => {
                     });
                     let outliersDatesSet = new Set(outliersDates);
                     let dataWithoutOutliers = [...data[station][i]];
-                    for (let index = 0; index < dates.length; index++) {
-                        if (outliersDatesSet.has(dates[index])) {
+                    for (let index = 0; index < dates[station][i].length; index++) {
+                        if (outliersDatesSet.has(dates[station][i][index])) {
                             dataWithoutOutliers[index] = NaN;
                         }
                     }
                     let graphWithoutOutliers = {
                         type: "scatter",
                         mode: "lines",
-                        x: dates,
+                        x: dates[station][i],
                         y: dataWithoutOutliers,
                         line: {color: colorsForEachComponent[i]},
                         name: listOfComponents[i] + " component"
@@ -446,7 +485,7 @@ submitFormButton.addEventListener('click', e => {
                         return this;
                     }
     
-                    let lastDateInData = dates.slice(-1);
+                    let lastDateInData = [station][i].slice(-1);
                     let listOfDatesForForecast = new Array(forecastPeriodInput.value);
     
                     for (let index = 0; index < forecastPeriodInput.value; index++) {
@@ -457,7 +496,7 @@ submitFormButton.addEventListener('click', e => {
                     let dataGraph = {
                         type: "scatter",
                         mode: "lines",
-                        x: dates,
+                        x: [station][i],
                         y: data[station][i],
                         line: {color: colorsForEachComponent[i]},
                         name: listOfComponents[i] + " component"
@@ -477,7 +516,9 @@ submitFormButton.addEventListener('click', e => {
     
                 let resetGraphButton = document.createElement('button');
                 resetGraphButton.innerHTML = 'Reset graph';
+                resetGraphButton.classList.add('reset-graph-button');
                 resetGraphButton.addEventListener('click', e => {
+                    document.querySelector('[data-title="Autoscale"]').click();
                     Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
                 })
     
@@ -505,10 +546,12 @@ submitFormButton.addEventListener('click', e => {
     
             document.getElementById('list-of-ts-blocks-div').appendChild(outerDiv);
 
+            // TODO: для 3d нужно по-другому загружать данные: не удалять пустые значения.
+            // Также надо заменить (**)
             let currentGraph = {
                 type: 'scatter3d',
                 mode: 'lines',
-                x: dates,
+                // x: [station][0], (**)
                 y: data[station][0],
                 z: data[station][1],
                 name: listOfComponents.toString() + " components"
@@ -539,45 +582,20 @@ clearAllStationsButton.addEventListener('click', e => {
     setOfSelectedStations.clear();
 })
 
-let displayedStationsMarkers = [];
-
 let showStationNamesButton = document.getElementById('show-station-names-button');
 let stationsAreDisplayed = false;
 showStationNamesButton.addEventListener('click', e => {
+    var currentZoom = map.getZoom();
     if (stationsAreDisplayed) {
-        for (const marker of displayedStationsMarkers) {
-            map.removeLayer(marker);
+        for (const marker of stationsMarkers) {
+            map.removeLayer(marker)
         }
         showStationNamesButton.innerHTML = 'Show names';
         stationsAreDisplayed = false;
     } else {
-        for (const key of Object.keys(stationAndCoordinatesDict)) { 
-            let markerHtmlStyles = `
-                width: 3rem;
-                height: 3rem;
-                display: block;
-                left: -1.5rem;
-                top: -1.5rem;
-                position: relative;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-size: ${10}px;
-                `
-            const icon = L.divIcon({
-                className: "my-custom-pin",
-                html: `<span style="${markerHtmlStyles}">${key}</span>`,
-                iconAnchor: [1,1]
-            })
-            
-            var textLatLng = stationAndCoordinatesDict[key];  
-            let stationMarker = L.marker(textLatLng, {
-                icon: icon,
-                zIndexOffset: 1000,
-                interactive: false
-            }).addTo(map);
-            displayedStationsMarkers.push(stationMarker);
-        };
+        for (const marker of stationsMarkers) {
+            map.addLayer(marker)
+        }
         showStationNamesButton.innerHTML = 'Hide names';
         stationsAreDisplayed = true
     }

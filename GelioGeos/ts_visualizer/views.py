@@ -85,6 +85,9 @@ class TSOutliersView(View):
         windowSize = int(request.POST.get('windowSize'))
         tsData = [float(x) for x in tsData]
 
+        print(len(tsDates))
+        print(len(tsData))
+
         df = pd.DataFrame({'dates': tsDates, 'data': tsData})
         z, avg, std, m = zscore(df['data'], window=windowSize, return_all=True)
         df_outliers = df.loc[~m, ['dates', 'data']]
@@ -125,7 +128,7 @@ class TSDataView(View):
         loadedData = cur.execute(f"SELECT date, {selectedComponent} "
                                  f"FROM {TABLE_NAME} "
                                  f"WHERE date >= '{startDate}' AND "
-                                 f"date < '{finalDate}' AND "
+                                 f"date <= '{finalDate}' AND "
                                  f"station = '{selectedStation}' "
                                  f"ORDER BY date;")
         loadedData = loadedData.fetchall()
@@ -145,15 +148,9 @@ class TSDataView(View):
         df = pd.DataFrame({'date': datesToReturn})
 
         if countNotNoneValues == 0:
-            startDate = datetime.strptime(startDate, '%Y-%m-%d %H:%M:%S')
-            finalDate = datetime.strptime(finalDate, '%Y-%m-%d %H:%M:%S')
-
             return JsonResponse({
-                "dates": [str(element) for element in pd.date_range(startDate,
-                                                                    finalDate - timedelta(days=1),
-                                                                    freq='h')
-                          ],
-                "data": json.dumps([None] * len(datesToReturn))
+                "dates": json.dumps([]),
+                "data": json.dumps([])
             })
 
         # noinspection PyTypeChecker
