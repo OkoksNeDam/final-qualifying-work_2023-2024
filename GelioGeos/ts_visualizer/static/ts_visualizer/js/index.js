@@ -256,7 +256,7 @@ submitFormButton.addEventListener('click', e => {
                 
                 let layout = {
                     showlegend: true,
-                    title: station + " station",
+                    title: station + " station, " + listOfComponents[i] + " component",
                     paper_bgcolor: "rgb(237, 237, 237)",
                     plot_bgcolor: "rgb(237, 237, 237)",
                 };
@@ -284,7 +284,7 @@ submitFormButton.addEventListener('click', e => {
                 smoothingLevelInput.min = 0.001;
                 smoothingLevelInput.max = 1.000;
                 smoothingLevelInput.step = 0.0001;
-                smoothingLevelInput.value = 0.5;
+                smoothingLevelInput.value = 1;
 
                 let smoothingLevelLabel = document.createElement('label');
                 smoothingLevelLabel.innerHTML = "Smoothing level: ";
@@ -347,6 +347,7 @@ submitFormButton.addEventListener('click', e => {
 
                     if (!isInteger(outliersWindowInput.value) || Number(outliersWindowInput.value) < 2 || Number(outliersWindowInput.value) > data[station][i].length) {
                         alert("Window size should be integer in range [2, data_length].")
+                        outliersWindowInput.value = null;
                         return;
                     }
 
@@ -394,6 +395,7 @@ submitFormButton.addEventListener('click', e => {
 
                     if (!isInteger(outliersWindowInput.value) || Number(outliersWindowInput.value) < 2 || Number(outliersWindowInput.value) > data[station][i].length) {
                         alert("Window size should be integer in range [2, data_length].")
+                        outliersWindowInput.value = null;
                         return;
                     }
 
@@ -453,11 +455,13 @@ submitFormButton.addEventListener('click', e => {
                     if (station != 'KEV' || listOfComponents[i] != 'y' || timeAveragingValueInput.value != 'hour') {
                         // TODO: добавить enum для таких ошибок
                         alert('Forecasts are available for hourly data of y component of station KEV.');
+                        forecastPeriodInput.value = null;
                         return;
                     }
 
                     if (!isInteger(forecastPeriodInput.value) || Number(forecastPeriodInput.value) > 100 || Number(forecastPeriodInput.value) < 2) {
                         alert('Forecast period should be integer in range [2, 100].');
+                        forecastPeriodInput.value = null;
                         return;
                     }
 

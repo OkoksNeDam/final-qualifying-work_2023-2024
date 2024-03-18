@@ -2,15 +2,13 @@ from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse
 import pandas as pd
-from datetime import datetime
-from datetime import timedelta
 from torch import nn
 import torch
 import sqlite3
 import json
 from joblib import load
 import numpy as np
-from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing
+from statsmodels.tsa.api import SimpleExpSmoothing
 
 
 def main_view(request):
