@@ -538,6 +538,7 @@ submitFormButton.addEventListener('click', e => {
         }
     } else {
         for (const station of selectedStations) {
+            
             let outerDiv = document.createElement('div');
             outerDiv.id = station + '-ts-block-component-' + listOfComponents.toString();
             outerDiv.classList.add('ts-block-div-3d');
@@ -555,7 +556,7 @@ submitFormButton.addEventListener('click', e => {
             let currentGraph = {
                 type: 'scatter3d',
                 mode: 'lines',
-                // x: [station][0], (**)
+                x: dates[station][0], // (**)
                 y: data[station][0],
                 z: data[station][1],
                 name: listOfComponents.toString() + " components"
@@ -566,6 +567,11 @@ submitFormButton.addEventListener('click', e => {
                 title: station + " station",
                 paper_bgcolor: "rgb(237, 237, 237)",
                 plot_bgcolor: "rgb(237, 237, 237)",
+                scene: {
+                    xaxis:{title: 'dates'},
+                    yaxis:{title: listOfComponents[0]},
+                    zaxis:{title: listOfComponents[1]},
+                    },
             };
 
             // Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});

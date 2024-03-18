@@ -1,5 +1,3 @@
-import os
-
 from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse
@@ -53,7 +51,7 @@ class TSForecastView(View):
         scaler = load(PATH_TO_SCALER)
         tsDataScaled = scaler.transform(np.array(tsData).reshape(-1, 1)).reshape(-1, 1)
         model = MLP(NUM_OF_LAGS, HIDDEN_LAYER_SIZE, PREDICTION_PERIOD)
-        # TODO: change path to model.
+
         model.load_state_dict(torch.load(
             PATH_TO_MODEL
         ))
