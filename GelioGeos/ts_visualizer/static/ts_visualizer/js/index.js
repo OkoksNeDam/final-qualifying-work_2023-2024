@@ -278,8 +278,10 @@ submitFormButton.addEventListener('click', e => {
                 tsSmoothingFieldsetLegend.innerHTML = "Smoothing";
                 tsSmoothingFieldset.appendChild(tsSmoothingFieldsetLegend);
     
-                // TODO: для всех полей ввода сделать проверку.
+                let smoothingLevelDiv = document.createElement('div');
+
                 let smoothingLevelInput = document.createElement('input');
+
                 smoothingLevelInput.type = 'range';
                 smoothingLevelInput.min = 0.001;
                 smoothingLevelInput.max = 1.000;
@@ -287,9 +289,17 @@ submitFormButton.addEventListener('click', e => {
                 smoothingLevelInput.value = 1;
 
                 let smoothingLevelLabel = document.createElement('label');
-                smoothingLevelLabel.innerHTML = "Smoothing level: ";
-                tsSmoothingFieldset.appendChild(smoothingLevelLabel);
-                tsSmoothingFieldset.appendChild(smoothingLevelInput);
+                smoothingLevelLabel.innerHTML = "Smoothing level: " + smoothingLevelInput.min;
+
+                smoothingLevelDiv.appendChild(smoothingLevelLabel);
+                smoothingLevelDiv.appendChild(smoothingLevelInput);
+
+                let maxSmoothingValueLabel = document.createElement('label');
+                maxSmoothingValueLabel.innerHTML = '1';
+
+                smoothingLevelDiv.appendChild(maxSmoothingValueLabel);
+
+                tsSmoothingFieldset.appendChild(smoothingLevelDiv);
 
                 let smoothingLevelCurrentValueLabel = document.createElement('label');
                 smoothingLevelCurrentValueLabel.innerHTML = "Value: " + smoothingLevelInput.value;
@@ -330,6 +340,9 @@ submitFormButton.addEventListener('click', e => {
                     }
                     Plotly.newPlot(tsPlotDiv.id, [smoothedGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
                 });
+
+                let showAndRemoveOutliersDivWrapper = document.createElement('div');
+                showAndRemoveOutliersDivWrapper.classList.add('show-and-remove-outliers-div-wrapper')
     
                 let outliersWindowInput = document.createElement('input');
                 outliersWindowInput.type = 'number';
@@ -340,8 +353,10 @@ submitFormButton.addEventListener('click', e => {
                 tsOutliersFieldset.appendChild(outliersWindowInput);
     
                 let showOutliersButton = document.createElement('button');
+                showOutliersButton.classList.add('show-outliers-button');
                 showOutliersButton.innerHTML = 'Show outliers';
-                tsOutliersFieldset.appendChild(showOutliersButton);
+
+                showAndRemoveOutliersDivWrapper.appendChild(showOutliersButton);
     
                 showOutliersButton.addEventListener('click', e => {
 
@@ -389,7 +404,9 @@ submitFormButton.addEventListener('click', e => {
     
                 let removeOutliersButton = document.createElement('button');
                 removeOutliersButton.innerHTML = 'Remove outliers';
-                tsOutliersFieldset.appendChild(removeOutliersButton);
+                showAndRemoveOutliersDivWrapper.appendChild(removeOutliersButton);
+
+                tsOutliersFieldset.appendChild(showAndRemoveOutliersDivWrapper);
     
                 removeOutliersButton.addEventListener('click', e => {
 
@@ -436,6 +453,9 @@ submitFormButton.addEventListener('click', e => {
         
                     Plotly.newPlot(tsPlotDiv.id, [graphWithoutOutliers], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
                 });
+
+                let forecastInputAndButtonWrapper = document.createElement('div');
+                forecastInputAndButtonWrapper.classList.add('forecast-input-and-button-wrapper')
     
                 let forecastPeriodInput = document.createElement('input');
                 forecastPeriodInput.type = 'number';
@@ -445,9 +465,13 @@ submitFormButton.addEventListener('click', e => {
                 forecastPeriodLabel.for = forecastPeriodInput.id
     
                 let makeTSForecastButton = document.createElement('button')
+                makeTSForecastButton.classList.add('make-ts-forecast-button');
                 makeTSForecastButton.innerHTML = "Make forecast"
                 makeTSForecastButton.station = station
                 makeTSForecastButton.component = listOfComponents[i]
+
+                forecastInputAndButtonWrapper.appendChild(forecastPeriodInput);
+                forecastInputAndButtonWrapper.appendChild(makeTSForecastButton);
     
                 // TODO: похоже, что после прогнозирования что-то ломается и не получается отображать выбросы.
     
@@ -522,7 +546,7 @@ submitFormButton.addEventListener('click', e => {
                 resetGraphButton.innerHTML = 'Reset graph';
                 resetGraphButton.classList.add('reset-graph-button');
                 resetGraphButton.addEventListener('click', e => {
-                    document.querySelector('[data-title="Autoscale"]').click();
+                    tsPlotDiv.querySelectorAll('.modebar-btn')[5].click();
                     Plotly.newPlot(tsPlotDiv.id, [currentGraph], layout, {displaylogo: false, modeBarButtonsToRemove: ['resetScale2d']});
                 })
     
@@ -530,8 +554,7 @@ submitFormButton.addEventListener('click', e => {
                 tsPlotSettingsDiv.appendChild(tsOutliersFieldset);
                 tsPlotSettingsDiv.appendChild(tsSmoothingFieldset);
                 tsForecastingFieldset.appendChild(forecastPeriodLabel);
-                tsForecastingFieldset.appendChild(forecastPeriodInput);
-                tsForecastingFieldset.appendChild(makeTSForecastButton);
+                tsForecastingFieldset.appendChild(forecastInputAndButtonWrapper);
                 tsPlotSettingsDiv.appendChild(resetGraphButton);
                 tsPlotSettingsDiv.appendChild(amountOfDataLabel);
             }
@@ -595,7 +618,6 @@ clearAllStationsButton.addEventListener('click', e => {
 let showStationNamesButton = document.getElementById('show-station-names-button');
 let stationsAreDisplayed = false;
 showStationNamesButton.addEventListener('click', e => {
-    var currentZoom = map.getZoom();
     if (stationsAreDisplayed) {
         for (const marker of stationsMarkers) {
             map.removeLayer(marker)

@@ -87,9 +87,6 @@ class TSOutliersView(View):
         windowSize = int(request.POST.get('windowSize'))
         tsData = [float(x) for x in tsData]
 
-        print(len(tsDates))
-        print(len(tsData))
-
         df = pd.DataFrame({'dates': tsDates, 'data': tsData})
         z, avg, std, m = zscore(df['data'], window=windowSize, return_all=True)
         df_outliers = df.loc[~m, ['dates', 'data']]

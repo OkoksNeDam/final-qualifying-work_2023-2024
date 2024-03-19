@@ -83,9 +83,38 @@
     margin-bottom:10px;
     margin:0 auto;
     display:block;
+    margin-top: 7px;
 }
 
 .amount-of-data-label {
     display: flex;
     justify-content: center;
+}
+
+.make-ts-forecast-button {
+    margin-left: 10px;
+}
+
+.show-outliers-button {
+    margin-right: 10px;
+}
+
+.forecast-input-and-button-wrapper {
+    margin-top: 7px;
+}
+
+.show-and-remove-outliers-div-wrapper {
+    margin-top: 7px;
+}
+
+#clear-all-stations-button {
+    margin-top: 5px;
+}
+
+#show-station-names-button {
+    margin-right: 5px;
+}
+
+.start-date-input-wrapper {
+    margin-bottom: 5px;
 }
